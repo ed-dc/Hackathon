@@ -82,10 +82,18 @@ function addItinary() {
         });
 }
 
+
+
+
+
 window.onload = function () {
     // Fonction d'initialisation qui s'exécute lorsque le DOM est chargé
     initMap();
     // addItinary();
+
+    //Add ability to click
+    document.addEventListener('DOMContentLoaded', clickOnMap);
+
 
     const submitItinary = document.querySelector('#generate-route');
     submitItinary.addEventListener('click', (ev) => addItinary());
