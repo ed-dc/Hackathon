@@ -4,6 +4,8 @@ const planUrl = "https://data.mobilites-m.fr/api/routers/default/plan";
 var lat = 45.166672;
 var lon = 5.71667;
 var map = null;
+var startCoords = null;
+var endCoords = null;
 var currentItinary = null;
 var currentMarkers = [];
 // Fonction d'initialisation de la carte
@@ -17,6 +19,8 @@ function initMap() {
         minZoom: 13,
         maxZoom: 20
     }).addTo(map);
+
+    setupMapClickListener();    
 }
 
 function addItinary() {
@@ -83,7 +87,97 @@ function addItinary() {
 }
 
 
+function setupMapClickListener() {
+    map.on('click', function(e) {
+      const lat = e.latlng.lat.toFixed(6);
+      const lng = e.latlng.lng.toFixed(6);
+      const coordStr = `${lat}, ${lng}`;
+      
+      if (!startCoords) {
+        // Set starting point
+        startCoords = coordStr;
+        document.getElementById('start-point').value = coordStr;
+        
+        // Add a marker for the starting point
+        if (currentMarkers.length > 0) {
+          currentMarkers.forEach(marker => map.removeLayer(marker));
+          currentMarkers = [];
+        }
+        
+        const startMarker = L.marker([lat, lng]).addTo(map);
+        startMarker.bindPopup('Point de départ').openPopup();
+        currentMarkers.push(startMarker);
+        
+        console.log("Starting point set:", coordStr);
+      }
+      else if (!endCoords) {
+        // Set destination
+        endCoords = coordStr;
+        document.getElementById('end-point').value = coordStr;
+        
+        // Add a marker for the end point
+        const endMarker = L.marker([lat, lng]).addTo(map);
+        endMarker.bindPopup('Point d\'arrivée').openPopup();
+        currentMarkers.push(endMarker);
+        
+        console.log("Destination set:", coordStr);
+        
+        // Automatically generate the itinerary once both points are set
+        addItinary();
+      }
+      else {
+        // If both points are already set, reset and start over with a new starting point
+        startCoords = coordStr;
+        endCoords = null;
+        
+        // Clear existing markers and itinerary
+        if (currentMarkers.length > 0) {
+          currentMarkers.forEach(marker => map.removeLayer(marker));
+          currentMarkers = [];
+        }
+        
+        if (currentItinary) {
+          map.removeLayer(currentItinary);
+          currentItinary = null;
+        }
+        
+        // Set new starting point
+        document.getElementById('start-point').value = coordStr;
+        document.getElementById('end-point').value = '';
+        
+        // Add a marker for the new starting point
+        const startMarker = L.marker([lat, lng]).addTo(map);
+        startMarker.bindPopup('Point de départ').openPopup();
+        currentMarkers.push(startMarker);
+        
+        console.log("Reset: new starting point set:", coordStr);
+      }
+    });
+}
 
+
+
+function resetRoute() {
+    startCoords = null;
+    endCoords = null;
+    
+    // Clear inputs
+    document.getElementById('start-point').value = '';
+    document.getElementById('end-point').value = '';
+    
+    // Clear existing markers and itinerary
+    if (currentMarkers.length > 0) {
+        currentMarkers.forEach(marker => map.removeLayer(marker));
+        currentMarkers = [];
+    }
+    
+    if (currentItinary) {
+        map.removeLayer(currentItinary);
+        currentItinary = null;
+    }
+    
+    console.log("Route reset");
+    }
 
 
 window.onload = function () {
@@ -92,9 +186,13 @@ window.onload = function () {
     // addItinary();
 
     //Add ability to click
-    document.addEventListener('DOMContentLoaded', clickOnMap);
 
 
     const submitItinary = document.querySelector('#generate-route');
     submitItinary.addEventListener('click', (ev) => addItinary());
-};
+
+    const resetButton = document.querySelector('.reset-button');
+    if (resetButton) {
+        resetButton.addEventListener('click', resetRoute);
+    }
+}

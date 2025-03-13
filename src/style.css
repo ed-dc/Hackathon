@@ -221,6 +221,38 @@ h3 {
     margin-top: 1rem;
 }
 
+.reset-route {
+    display: block;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.reset-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem;
+    width: 100%;
+    border: 1px solid #E0E0E0;
+    border-radius: var(--border-radius);
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    color: #666;
+}
+
+.reset-button:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.reset-button i {
+    font-size: 1.2rem;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);
