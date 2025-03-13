@@ -11,13 +11,13 @@ let startCoords = null;
 let endCoords = null;
 
 const startIcon = L.divIcon({
-    html: '<i class="fas fa-map-marker fa-2x" style="color:rgb(0, 0, 0);"></i>',
+    html: '<i class="fas fa-map-marker fa-2x" style="color:#3388ff;"></i>',
     iconSize: [20, 20],
     className: 'start-icon'
 });
 
 const endIcon = L.divIcon({
-    html: '<i class="fas fa-flag fa-2x" style="color:rgb(0, 0, 0);"></i>',
+    html: '<i class="fas fa-flag fa-2x" style="color:#3388ff;"></i>',
     iconSize: [20, 20],
     className: 'end-icon'
 });
@@ -207,6 +207,7 @@ function showItinerary(itineraryIdx = 0) {
         polyline.setStyle({
             dashArray: dashArray,
             weight: 5,
+            opacity: 0.7,
             smoothFactor: 1,
             color: color,
         }).addTo(map);
