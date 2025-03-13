@@ -89,7 +89,6 @@ function fetchItinaries() {
                     let transportIcon = '';
                     let transportLength = '';
                     let mode = modeSelect.value;
-                    console.log(itinerary);
                     switch (mode) {
                         case 'WALK':
                             transportType = 'Marche';
@@ -201,7 +200,6 @@ function showItinerary(itineraryIdx = 0) {
         latlngs = latlngs.concat(polyline.getLatLngs());
         const dashArray = leg.mode === "WALK" ? '5, 10' : 'none';
         const color = (leg.mode === "BUS" || leg.mode === "TRAM") ? `#${leg.routeColor}` : '#3388ff';
-        console.log(color);
         polyline.setStyle({
             dashArray: dashArray,
             weight: 5,
