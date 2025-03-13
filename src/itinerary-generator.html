@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grenoble Itinerary Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .map-container {
+            flex-grow: 1;
+            position: relative;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+        
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .results {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+        
+        .itinerary-step {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .itinerary-step:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .mode-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            text-align: center;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .car-icon {
+            background-color: #e74c3c;
+        }
+        
+        .bike-icon {
+            background-color: #3498db;
+        }
+        
+        .walk-icon {
+            background-color: #2ecc71;
+        }
+        
+        .transport-icon {
+            background-color: #9b59b6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Grenoble Itinerary Generator</h1>
+            
+            <label for="start-point">Starting Point</label>
+            <input type="text" id="start-point" placeholder="Click on map or enter coordinates">
+            
+            <label for="end-point">Destination</label>
+            <input type="text" id="end-point" placeholder="Click on map or enter coordinates">
+            
+            <label for="transport-mode">Transportation Mode</label>
+            <select id="transport-mode">
+                <option value="car">Car</option>
+                <option value="bike">Bicycle</option>
+                <option value="walk">Walking</option>
+                <option value="public-transport">Public Transport</option>
+                <option value="mixed">Mixed (Optimal)</option>
+            </select>
+            
+            <label for="options">Options</label>
+            <div>
+                <input type="checkbox" id="avoid-highways" value="avoid-highways">
+                <label for="avoid-highways">Avoid Highways</label>
+            </div>
+            <div>
+                <input type="checkbox" id="prefer-bike-lanes" value="prefer-bike-lanes">
+                <label for="prefer-bike-lanes">Prefer Bike Lanes</label>
+            </div>
+            
+            <button id="generate-route">Generate Route</button>
+            
+            <div class="loader">
+                <div class="spinner"></div>
+                <p>Calculating route...</p>
+            </div>
+            
+            <div class="results" id="results">
+                <h2>Itinerary</h2>
+                <div id="itinerary-details"></div>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        // Initialize the map centered on Grenoble
+        const map = L.map('map').setView([45.1885, 5.7245], 13);
+        
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Variables to store map data
+        let roadNetwork = null;
+        let publicTransport = null;
+        let startMarker = null;
+        let endMarker = null;
+        let routePath = null;
+        
+        // Variables to store coordinates
+        let startCoords = null;
+        let endCoords = null;
+
+        // Load GeoJSON data
+        async function loadGeoJSONData() {
+            try {
+                // In a real application, you would load the actual files from your server
+                // For this demo, we'll simulate loading with a small sample of data
+                // In production, replace these with actual fetch calls to your GeoJSON files
+                
+                // Simulate loading road network
+                const roadNetworkResponse = await fetch('grenoble.geojson');
+                if (!roadNetworkResponse.ok) {
+                    throw new Error('Failed to load road network data');
+                }
+                roadNetwork = await roadNetworkResponse.json();
+                
+                // Simulate loading public transport data
+                const publicTransportResponse = await fetch('data_transport_commun_grenoble.geojson');
+                if (!publicTransportResponse.ok) {
+                    throw new Error('Failed to load public transport data');
+                }
+                publicTransport = await publicTransportResponse.json();
+
+                console.log('Data loaded successfully!');
+                
+                // Enable the generate route button once data is loaded
+                document.getElementById('generate-route').disabled = false;
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Failed to load map data. Please try refreshing the page.');
+            }
+        }
+
+        // For demo purposes, we'll create a simplified version of the GeoJSON with sample data
+        // In a real application, you would use the actual data from the files
+        function createSampleData() {
+            // Sample road network for demo purposes
+            roadNetwork = {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [5.7245, 45.1885],
+                                [5.7265, 45.1895],
+                                [5.7285, 45.1905]
+                            ]
+                        },
+                        "properties": {
+                            "highway": "primary",
+                            "name": "Avenue Alsace-Lorraine",
+                            "maxspeed": "50",
+                            "oneway": "yes"
+                        }
+                    },
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [5.7285, 45.1905],
+                                [5.7305, 45.1910],
+                                [5.7325, 45.1915]
+                            ]
+                        },
+                        "properties": {
+                            "highway": "residential",
+                            "name": "Rue de la République",
+                            "maxspeed": "30",
+                            "bicycle": "yes"
+                        }
+                    }
+                ]
+            };
+            
+            // Sample public transport data for demo purposes
+            publicTransport = {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [5.7265, 45.1895]
+                        },
+                        "properties": {
+                            "type": "stop",
+                            "name": "Alsace-Lorraine",
+                            "routes": ["A", "C"]
+                        }
+                    },
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [5.7245, 45.1885],
+                                [5.7265, 45.1895],
+                                [5.7305, 45.1910]
+                            ]
+                        },
+                        "properties": {
+                            "type": "route",
+                            "route_name": "Tram A",
+                            "transport_type": "tram"
+                        }
+                    }
+                ]
+            };
+        }
+
+        // Call the function to create sample data for the demo
+        createSampleData();
+
+        // UI event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try to load the actual data
+            // loadGeoJSONData();
+            
+            // Map click handler to set start and end points
+            map.on('click', function(e) {
+                const lat = e.latlng.lat.toFixed(6);
+                const lng = e.latlng.lng.toFixed(6);
+                const coordStr = `${lat}, ${lng}`;
+                
+                if (!startCoords) {
+                    // Set starting point
+                    startCoords = [lng, lat];
+                    document.getElementById('start-point').value = coordStr;
+                    
+                    // Add marker
+                    if (startMarker) {
+                        startMarker.remove();
+                    }
+                    startMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: '<div style="background-color:#4CAF50;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>',
+                            iconSize: [16, 16]
+                        })
+                    }).addTo(map);
+                } else if (!endCoords) {
+                    // Set destination
+                    endCoords = [lng, lat];
+                    document.getElementById('end-point').value = coordStr;
+                    
+                    // Add marker
+                    if (endMarker) {
+                        endMarker.remove();
+                    }
+                    endMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: '<div style="background-color:#e74c3c;width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>',
+                            iconSize: [16, 16]
+                        })
+                    }).addTo(map);
+                }
+            });
+            
+            // Generate route button click handler
+            document.getElementById('generate-route').addEventListener('click', function() {
+                generateRoute();
+            });
+            
+            // Clear fields on input focus
+            document.getElementById('start-point').addEventListener('focus', function() {
+                startCoords = null;
+                if (startMarker) {
+                    startMarker.remove();
+                }
+                this.value = '';
+            });
+            
+            document.getElementById('end-point').addEventListener('focus', function() {
+                endCoords = null;
+                if (endMarker) {
+                    endMarker.remove();
+                }
+                this.value = '';
+            });
+        });
+
+        // Function to generate a route between two points
+        function generateRoute() {
+            // Show loader
+            document.querySelector('.loader').style.display = 'block';
+            
+            // Clear previous route if any
+            if (routePath) {
+                routePath.remove();
+            }
+            
+            // Validate inputs
+            if (!startCoords || !endCoords) {
+                alert('Please set both starting point and destination.');
+                document.querySelector('.loader').style.display = 'none';
+                return;
+            }
+            
+            // Get selected transport mode
+            const transportMode = document.getElementById('transport-mode').value;
+            const avoidHighways = document.getElementById('avoid-highways').checked;
+            const preferBikeLanes = document.getElementById('prefer-bike-lanes').checked;
+            
+            // In a real application, you would implement a pathfinding algorithm using the GeoJSON data
+            // For demo purposes, we'll simulate finding a path
+            setTimeout(() => {
+                // Simulate route calculation
+                const route = simulateRouteFinding(startCoords, endCoords, transportMode, avoidHighways, preferBikeLanes);
+                
+                // Display the route on the map
+                displayRoute(route);
+                
+                // Display itinerary details
+                displayItineraryDetails(route);
+                
+                // Hide loader
+                document.querySelector('.loader').style.display = 'none';
+            }, 1500);
+        }
+
+        // Function to simulate finding a route (placeholder for actual pathfinding algorithm)
+        function simulateRouteFinding(start, end, mode, avoidHighways, preferBikeLanes) {
+            // In a real application, you would implement Dijkstra's or A* algorithm here
+            // using the GeoJSON data to find the shortest path
+            
+            // For this demo, we'll create a simple simulated route
+            let routePoints = [];
+            let steps = [];
+            
+            // Convert start and end to correct format
+            const startLat = parseFloat(start[1]);
+            const startLng = parseFloat(start[0]);
+            const endLat = parseFloat(end[1]);
+            const endLng = parseFloat(end[0]);
+            
+            // Create a few intermediate points for the route
+            const latDiff = endLat - startLat;
+            const lngDiff = endLng - startLng;
+            
+            // Number of points to generate depends on distance
+            const numPoints = 5 + Math.floor(Math.random() * 5);
+            
+            routePoints.push([startLng, startLat]);
+            
+            // Generate a slightly random path between start and end
+            for (let i = 1; i < numPoints; i++) {
+                const ratio = i / numPoints;
+                const randomOffset = (Math.random() - 0.5) * 0.005;
+                const lat = startLat + latDiff * ratio + randomOffset;
+                const lng = startLng + lngDiff * ratio + randomOffset;
+                routePoints.push([lng, lat]);
+                
+                // Create a step description
+                if (i === 1) {
+                    steps.push({
+                        type: 'start',
+                        instruction: 'Start at your location',
+                        distance: 0,
+                        time: 0,
+                        coordinates: [startLng, startLat]
+                    });
+                }
+                
+                // Generate different types of steps based on transport mode
+                let stepType, instruction, distance, time;
+                
+                if (mode === 'car') {
+                    stepType = 'car';
+                    const roadNames = ['Avenue Jean Jaurès', 'Rue de la République', 'Boulevard Gambetta', 'Rue Félix Poulat', 'Cours Berriat'];
+                    const actions = ['Continue on', 'Turn right onto', 'Turn left onto', 'Slight right onto', 'Slight left onto'];
+                    instruction = `${actions[Math.floor(Math.random() * actions.length)]} ${roadNames[Math.floor(Math.random() * roadNames.length)]}`;
+                    distance = Math.floor(200 + Math.random() * 800);
+                    time = Math.floor(distance / 30 * 3.6); // Time in seconds, assuming 30 km/h average speed
+                } else if (mode === 'bike') {
+                    stepType = 'bike';
+                    const bikeRoads = ['Cycle path', 'Bike lane on Boulevard Gambetta', 'Shared lane on Rue Félix Poulat', 'Protected bike lane'];
+                    instruction = `Continue on ${bikeRoads[Math.floor(Math.random() * bikeRoads.length)]}`;
+                    distance = Math.floor(200 + Math.random() * 600);
+                    time = Math.floor(distance / 15 * 3.6); // Time in seconds, assuming 15 km/h average speed
+                } else if (mode === 'walk') {
+                    stepType = 'walk';
+                    const walkRoads = ['Pedestrian path', 'Sidewalk on Boulevard Gambetta', 'Pedestrian crossing', 'Pedestrian zone'];
+                    instruction = `Walk along ${walkRoads[Math.floor(Math.random() * walkRoads.length)]}`;
+                    distance = Math.floor(100 + Math.random() * 300);
+                    time = Math.floor(distance / 5 * 3.6); // Time in seconds, assuming 5 km/h average speed
+                } else if (mode === 'public-transport') {
+                    stepType = 'transport';
+                    const transportTypes = ['Tram A', 'Tram B', 'Tram C', 'Bus 16', 'Bus 14', 'Bus C1'];
+                    const transportStops = ['Victor Hugo', 'Alsace-Lorraine', 'Grenoble Gares', 'Maison du Tourisme', 'Notre-Dame Musée'];
+                    instruction = `Take ${transportTypes[Math.floor(Math.random() * transportTypes.length)]} from ${transportStops[Math.floor(Math.random() * transportStops.length)]} to ${transportStops[Math.floor(Math.random() * transportStops.length)]}`;
+                    distance = Math.floor(500 + Math.random() * 1500);
+                    time = Math.floor(distance / 25 * 3.6); // Time in seconds, assuming 25 km/h average speed
+                } else { // mixed mode
+                    const stepTypes = ['car', 'bike', 'walk', 'transport'];
+                    stepType = stepTypes[Math.floor(Math.random() * stepTypes.length)];
+                    
+                    if (stepType === 'car') {
+                        const roadNames = ['Avenue Jean Jaurès', 'Rue de la République', 'Boulevard Gambetta'];
+                        instruction = `Drive along ${roadNames[Math.floor(Math.random() * roadNames.length)]}`;
+                        distance = Math.floor(200 + Math.random() * 800);
+                        time = Math.floor(distance / 30 * 3.6);
+                    } else if (stepType === 'bike') {
+                        const bikeRoads = ['Cycle path', 'Bike lane on Boulevard Gambetta'];
+                        instruction = `Cycle on ${bikeRoads[Math.floor(Math.random() * bikeRoads.length)]}`;
+                        distance = Math.floor(200 + Math.random() * 600);
+                        time = Math.floor(distance / 15 * 3.6);
+                    } else if (stepType === 'walk') {
+                        const walkRoads = ['Pedestrian path', 'Sidewalk'];
+                        instruction = `Walk along ${walkRoads[Math.floor(Math.random() * walkRoads.length)]}`;
+                        distance = Math.floor(100 + Math.random() * 300);
+                        time = Math.floor(distance / 5 * 3.6);
+                    } else { // transport
+                        const transportTypes = ['Tram A', 'Tram B', 'Bus 16'];
+                        const transportStops = ['Victor Hugo', 'Alsace-Lorraine', 'Grenoble Gares'];
+                        instruction = `Take ${transportTypes[Math.floor(Math.random() * transportTypes.length)]} from ${transportStops[Math.floor(Math.random() * transportStops.length)]}`;
+                        distance = Math.floor(500 + Math.random() * 1500);
+                        time = Math.floor(distance / 25 * 3.6);
+                    }
+                }
+                
+                steps.push({
+                    type: stepType,
+                    instruction: instruction,
+                    distance: distance,
+                    time: time,
+                    coordinates: [lng, lat]
+                });
+            }
+            
+            // Add final destination step
+            steps.push({
+                type: 'end',
+                instruction: 'Arrive at your destination',
+                distance: 0,
+                time: 0,
+                coordinates: [endLng, endLat]
+            });
+            
+            routePoints.push([endLng, endLat]);
+            
+            // Calculate total distance and time
+            let totalDistance = 0;
+            let totalTime = 0;
+            
+            steps.forEach(step => {
+                totalDistance += step.distance;
+                totalTime += step.time;
+            });
+            
+            return {
+                geometry: {
+                    type: 'LineString',
+                    coordinates: routePoints
+                },
+                properties: {
+                    mode: mode,
+                    avoidHighways: avoidHighways,
+                    preferBikeLanes: preferBikeLanes,
+                    totalDistance: totalDistance,
+                    totalTime: totalTime,
+                    steps: steps
+                }
+            };
+        }
+
+        // Function to display the route on the map
+        function displayRoute(route) {
+            // Convert the route coordinates to LatLng objects for Leaflet
+            const points = route.geometry.coordinates.map(coord => {
+                return [coord[1], coord[0]]; // Leaflet uses [lat, lng] format
+            });
+            
+            // Choose line style based on transport mode
+            let lineStyle = {};
+            
+            switch (route.properties.mode) {
+                case 'car':
+                    lineStyle = {
+                        color: '#e74c3c',
+                        weight: 5,
+                        opacity: 0.8,
+                        dashArray: null
+                    };
+                    break;
+                case 'bike':
+                    lineStyle = {
+                        color: '#3498db',
+                        weight: 5,
+                        opacity: 0.8,
+                        dashArray: null
+                    };
+                    break;
+                case 'walk':
+                    lineStyle = {
+                        color: '#2ecc71',
+                        weight: 5,
+                        opacity: 0.8,
+                        dashArray: '5, 10'
+                    };
+                    break;
+                case 'public-transport':
+                    lineStyle = {
+                        color: '#9b59b6',
+                        weight: 5,
+                        opacity: 0.8,
+                        dashArray: '10, 5'
+                    };
+                    break;
+                default:
+                    lineStyle = {
+                        color: '#f39c12',
+                        weight: 5,
+                        opacity: 0.8,
+                        dashArray: null
+                    };
+            }
+            
+            // Create a polyline for the route
+            routePath = L.polyline(points, lineStyle).addTo(map);
+            
+            // Fit the map to the route bounds
+            map.fitBounds(routePath.getBounds(), {
+                padding: [50, 50]
+            });
+            
+            // Add markers for the steps
+            route.properties.steps.forEach((step, index) => {
+                if (index > 0 && index < route.properties.steps.length - 1) {
+                    const coord = step.coordinates;
+                    const lat = coord[1];
+                    const lng = coord[0];
+                    
+                    let iconClass = '';
+                    switch (step.type) {
+                        case 'car':
+                            iconClass = 'car-icon';
+                            break;
+                        case 'bike':
+                            iconClass = 'bike-icon';
+                            break;
+                        case 'walk':
+                            iconClass = 'walk-icon';
+                            break;
+                        case 'transport':
+                            iconClass = 'transport-icon';
+                            break;
+                    }
+                    
+                    L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div class="mode-icon ${iconClass}">${index}</div>`,
+                            iconSize: [24, 24]
+                        })
+                    }).addTo(map);
+                }
+            });
+        }
+
+        // Function to display itinerary details in the sidebar
+        function displayItineraryDetails(route) {
+            const itineraryDiv = document.getElementById('itinerary-details');
+            
+            // Format total distance and time
+            const totalDistance = route.properties.totalDistance;
+            const totalTimeSeconds = route.properties.totalTime;
+            
+            let formattedDistance = '';
+            if (totalDistance >= 1000) {
+                formattedDistance = `${(totalDistance / 1000).toFixed(1)} km`;
+            } else {
+                formattedDistance = `${totalDistance} m`;
+            }
+            
+            let formattedTime = '';
+            if (totalTimeSeconds >= 3600) {
+                const hours = Math.floor(totalTimeSeconds / 3600);
+                const minutes = Math.floor((totalTimeSeconds % 3600) / 60);
+                formattedTime = `${hours} h ${minutes} min`;
+            } else {
+                const minutes = Math.ceil(totalTimeSeconds / 60);
+                formattedTime = `${minutes} min`;
+            }
+            
+            // Create summary div
+            const html = `
+                <div class="itinerary-summary">
+                    <p><strong>Total Distance:</strong> ${formattedDistance}</p>
+                    <p><strong>Estimated Time:</strong> ${formattedTime}</p>
+                </div>
+                <div class="itinerary-steps">
+                    ${route.properties.steps.map((step, index) => {
+                        // Format step distance and time
+                        let stepDistance = '';
+                        if (step.distance >= 1000) {
+                            stepDistance = `${(step.distance / 1000).toFixed(1)} km`;
+                        } else {
+                            stepDistance = `${step.distance} m`;
+                        }
+                        
+                        let stepTime = '';
+                        if (step.time >= 3600) {
+                            const hours = Math.floor(step.time / 3600);
+                            const minutes = Math.floor((step.time % 3600) / 60);
+                            stepTime = `${hours} h ${minutes} min`;
+                        } else if (step.time > 0) {
+                            const minutes = Math.ceil(step.time / 60);
+                            stepTime = `${minutes} min`;
+                        }
+                        
+                        // Select icon based on step type
+                        let iconClass = '';
+                        switch (step.type) {
+                            case 'start':
+                                iconClass = 'car-icon';
+                                break;
+                            case 'car':
+                                iconClass = 'car-icon';
+                                break;
+                            case 'bike':
+                                iconClass = 'bike-icon';
+                                break;
+                            case 'walk':
+                                iconClass = 'walk-icon';
+                                break;
+                            case 'transport':
+                                iconClass = 'transport-icon';
+                                break;
+                            case 'end':
+                                iconClass = 'car-icon';
+                                break;
+                        }
+                        
+                        return `
+                            <div class="itinerary-step" data-index="${index}" data-lat="${step.coordinates[1]}" data-lng="${step.coordinates[0]}">
+                                <div class="step-header">
+                                    ${step.type !== 'start' && step.type !== 'end' ? `<span class="mode-icon ${iconClass}">${index}</span>` : ''}
+                                    <strong>${step.instruction}</strong>
+                                </div>
+                                ${step.distance > 0 ? `
+                                <div class="step-details">
+                                    <span>${stepDistance}</span>
+                                    <span>${stepTime}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            // Set the HTML content
+            itineraryDiv.innerHTML = html;
+            
+            // Add click event handlers to steps
+            const stepElements = document.querySelectorAll('.itinerary-step');
+            stepElements.forEach(element => {
+                element.addEventListener('click', function() {
+                    const lat = parseFloat(this.getAttribute('data-lat'));
+                    const lng = parseFloat(this.getAttribute('data-lng'));
+                    
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        map.setView([lat, lng], 16);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
