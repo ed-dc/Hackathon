@@ -41,29 +41,28 @@ function initMap() {
     setupMapClickListener();
 }
 
-function fetchItinaries() {
+function fetchItinaries(isSearch = false) {
     const startInput = document.querySelector('input#start-point');
     const endInput = document.querySelector('input#end-point');
     const modeSelect = document.querySelector('.transport-btn.active');
     const avoidHighways = document.querySelector('input#avoid-highways').checked;
     const preferBikeLanes = document.querySelector('input#prefer-bike-lanes').checked;
-
-    var start = startInput.value; // Coordonnées de départ
-    var end = endInput.value; // Coordonnées d'arrivée
+    var start ;
+    var end;
 
     if (startInput.value === '' || endInput.value === '') {
         return;
     }
 
-    if (!isCoordinateFormat(startInput.value.replaceAll(' ', '')) || !isCoordinateFormat(endInput.value.replaceAll(' ', ''))) {
-        if (!isCoordinateFormat(startInput.value)) {
-            searchPlace(startInput.value, true);
-            start = document.querySelector('input#start-point').value;
-        }
-        if (!isCoordinateFormat(endInput.value)) {
-            searchPlace(endInput.value, false);
-            end = document.querySelector('input#end-point').value;
-        }
+    if (isSearch) {    // le cas ou l'on fait une recherche alors la value dans starting point est un lieu et non des coordonnées
+
+        start = startInput.getAttribute('data-coords');
+        end = endInput.getAttribute('data-coords');
+
+    }
+    else {
+        start = startInput.value; 
+        end = endInput.value; 
     }
 
 
@@ -221,14 +220,6 @@ function showItinerary(itineraryIdx = 0) {
     map.fitBounds(L.polyline([latlngs[0], latlngs[latlngs.length - 1]]).getBounds());
 }
 
-//test si la valeur est un format de coordonnées
-function isCoordinateFormat(value) {
-    // Regular expression to match coordinate format like "45.7, 56.8" or "45.7,56.8"
-    const coordRegex = /^[-+]?([0-9]*\.[0-9]+|[0-9]+),\s*[-+]?([0-9]*\.[0-9]+|[0-9]+)$/;
-
-    return coordRegex.test(value);
-}
-
 
 
 function setupMapClickListener() {
@@ -240,6 +231,7 @@ function setupMapClickListener() {
         if (!startCoords) {
             // Set starting point
             startCoords = coordStr;
+            
             document.getElementById('start-point').value = coordStr;
 
             // Add a marker for the starting point
@@ -249,7 +241,7 @@ function setupMapClickListener() {
             }
 
             const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
-            // startMarker.bindPopup('Point de départ').openPopup();
+
             shownMarkers.push(startMarker);
 
             console.log("Starting point set:", coordStr);
@@ -261,7 +253,7 @@ function setupMapClickListener() {
 
             // Add a marker for the end point
             const endMarker = L.marker([lat, lng], { icon: endIcon }).addTo(map);
-            // endMarker.bindPopup('Point d\'arrivée').openPopup();
+
             shownMarkers.push(endMarker);
 
             console.log("Destination set:", coordStr);
@@ -291,7 +283,7 @@ function setupMapClickListener() {
 
             // Add a marker for the new starting point
             const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
-            // startMarker.bindPopup('Point de départ').openPopup();
+
             shownMarkers.push(startMarker);
 
             console.log("Reset: new starting point set:", coordStr);
@@ -299,90 +291,203 @@ function setupMapClickListener() {
     });
 }
 
+//On utilise l'API nominatim pour rechercher des lieux
+// search : la chaîne de recherche
+// bool_start : booléen pour déterminer s'il s'agit du point de départ ou d'arrivée
 
-
-//Fonction pour rechercher une place / lieux de grenoble et obtenir les coordonnées
-
-function searchPlace(query, bool_start = true) {
-
-    const searchQuery = `${query}, Grenoble, France`;
-
-    const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`;
-
+function searchPlace(search, bool_start = true) {
+    const searchQuery = `${search}, Grenoble, France`;
+    const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`;
+    
+    // Supprimer tout menu déroulant existant
+    const existingDropdowns = document.querySelectorAll('.place-dropdown');
+    existingDropdowns.forEach(dropdown => dropdown.remove());
+    
     fetch(searchUrl)
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
-                const place = data[0];
-                const lat = place.lat;
-                const lon = place.lon;
-                const coords = `${lat}, ${lon}`;
-
-                if (bool_start) {
-                    startCoords = coords;
-                    document.getElementById('start-point').value = coords;
-                } else {
-                    endCoords = coords;
-                    document.getElementById('end-point').value = coords;
-                }
-
-                const marker = L.marker([lat, lon], { icon: startIcon }).addTo(map);
-                // marker.bindPopup(query).openPopup(); //affiche le nom du lieu en pop up
-                shownMarkers.push(marker);
-
-                if (startCoords && endCoords) {
-                    fetchItinaries();
-                }
+                // Créer le menu déroulant avec les options de lieux
+                createPlaceDropdown(data, bool_start);
             } else {
                 console.error('Aucun lieu trouvé.');
+                // Afficher un message d'erreur dans l'interface utilisateur
+                const inputElement = bool_start ? document.getElementById('start-point') : document.getElementById('end-point');
+                showNoResultsMessage(inputElement);
             }
         })
         .catch(error => {
-            console.error('Erreur lors de la récupération des données de l\'itinéraire:', error);
+            console.error('Erreur lors de la récupération des données:', error);
         });
-
 }
 
 
-// Fonction pour configurer les champs de saisie pour la recherche
+// création du menu déroulant   
+// places : tableau d'objets de lieux
+// bool_start : booléen pour déterminer s'il s'agit du point de départ ou d'arrivée
+
+function createPlaceDropdown(places, bool_start) {
+    // Déterminer le champ d'entrée concerné
+    const inputElement = bool_start ? document.getElementById('start-point') : document.getElementById('end-point');
+    
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'place-dropdown';
+    
+    
+    places.forEach(place => {
+        const placeName = extractShortPlaceName(place.display_name);
+        const coords = `${place.lat}, ${place.lon}`;
+        
+        const option = document.createElement('div');
+        option.className = 'place-option';
+        option.innerHTML = `
+            <div class="place-name">${placeName}</div>
+            <div class="place-address">${place.display_name}</div>
+        `;
+        
+        // Ajouter un gestionnaire d'événements pour le clic sur une option
+        option.addEventListener('click', function() {
+   
+            inputElement.value = placeName;
+            
+
+            inputElement.setAttribute('data-coords', coords);
+            
+            // Supprimer le menu déroulant après sélection
+            dropdown.remove();
+            
+ 
+            addPlaceMarker(place.lat, place.lon, bool_start);
+            
+            // Si les deux points sont définis, générer l'itinéraire
+            if (document.getElementById('start-point').getAttribute('data-coords') && 
+                document.getElementById('end-point').getAttribute('data-coords')) {
+                fetchItinaries(true);
+            }
+        });
+        
+        dropdown.appendChild(option);
+    });
+    
+    // Positionner le menu déroulant sous le champ d'entrée
+    const inputRect = inputElement.getBoundingClientRect();
+    dropdown.style.top = (inputRect.bottom) + 'px';
+    dropdown.style.left = inputRect.left + 'px';
+    dropdown.style.width = inputRect.width + 'px';
+    
+    // Ajouter le menu déroulant au document
+    document.body.appendChild(dropdown);
+    
+    // Fermer le menu si on clique ailleurs
+    document.addEventListener('click', function closeDropdown(e) {
+        if (!dropdown.contains(e.target) && e.target !== inputElement) {
+            dropdown.remove();
+            document.removeEventListener('click', closeDropdown);
+        }
+    });
+}
+
+function addPlaceMarker(lat, lon, bool_start) {
+    // Supprimer les marqueurs existants si nécessaire
+    if (bool_start) {
+        // Si c'est un point de départ, on supprime tous les marqueurs
+        shownMarkers.forEach(marker => map.removeLayer(marker));
+        shownMarkers = [];
+        startCoords = `${lat}, ${lon}`;
+    } else if (!startCoords) {
+        // Si c'est une destination mais qu'il n'y a pas de point de départ, on supprime aussi
+        shownMarkers.forEach(marker => map.removeLayer(marker));
+        shownMarkers = [];
+        endCoords = `${lat}, ${lon}`;
+    } else {
+        // Si c'est une destination et qu'il y a déjà un point de départ,
+        // on ne supprime que le marqueur de destination s'il existe
+        if (shownMarkers.length > 1) {
+            map.removeLayer(shownMarkers.pop());
+        }
+        endCoords = `${lat}, ${lon}`;
+    }
+    
+    // Ajouter le nouveau marqueur
+    const markerIcon = bool_start ? startIcon : endIcon;
+    const marker = L.marker([lat, lon], { icon: markerIcon }).addTo(map);
+    shownMarkers.push(marker);
+    
+    // Zoomer sur le marqueur
+    map.setView([lat, lon], 15);
+}
+
+function showNoResultsMessage(inputElement) {
+
+    // Créer un menu déroulant avec un message d'erreur
+    const dropdown = document.createElement('div');
+    dropdown.className = 'place-dropdown';
+    
+    const message = document.createElement('div');
+    message.className = 'no-results';
+    message.textContent = 'Aucun résultat trouvé';
+    
+    dropdown.appendChild(message);
+    
+    // Positionner et afficher le message
+    const inputRect = inputElement.getBoundingClientRect();
+    dropdown.style.top = (inputRect.bottom) + 'px';
+    dropdown.style.left = inputRect.left + 'px';
+    dropdown.style.width = inputRect.width + 'px';
+    
+    document.body.appendChild(dropdown);
+    
+    // Fermer le message après 2 secondes
+    setTimeout(() => {
+        dropdown.remove();
+    }, 2000);
+}
+
+
 function setupPlaceSearch() {
     const startInput = document.getElementById('start-point');
     const endInput = document.getElementById('end-point');
 
     if (startInput) {
         startInput.addEventListener('keypress', function (event) {
-
-            const query = this.value.trim();
             if (event.key === 'Enter') {
                 event.preventDefault();
+                const query = this.value;
 
-
-                // Rechercher le lieu
                 searchPlace(query, true);
             }
-            // else {
-            //     searchPlace(query, true);
-            // }
         });
     }
 
-    // Configurer l'événement pour la destination
     if (endInput) {
         endInput.addEventListener('keypress', function (event) {
-
             if (event.key === 'Enter') {
                 event.preventDefault();
-                const query = this.value.trim();
-
-                // Rechercher le lieu
+                const query = this.value;
+                
                 searchPlace(query, false);
             }
         });
-
     }
 }
 
 
+// L'API Nominatim renvoie souvent des noms très longs avec beaucoup de détails
+// Cette fonction extrait juste la partie la plus pertinente
+
+function extractShortPlaceName(displayName) {
+    
+    const parts = displayName.split(',');
+    
+
+    if (parts.length < 3) return displayName;
+    
+    const word_0 = parts[0].trim();
+    const word_1 = parts[1].trim();
+    
+    return `${word_0}, ${word_1}`;
+}
 
 
 window.onload = function () {
@@ -391,14 +496,6 @@ window.onload = function () {
 
 
     setupPlaceSearch();
-
-    // const submitItinary = document.querySelector('#generate-route');
-    // submitItinary.addEventListener('click', (ev) => fetchItinaries());
-
-    const resetButton = document.querySelector('.reset-button');
-    if (resetButton) {
-        resetButton.addEventListener('click', resetRoute);
-    }
 
     document.querySelectorAll('button.transport-btn').forEach((btn) => {
         btn.addEventListener('click', (ev) => {
