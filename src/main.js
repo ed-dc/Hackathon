@@ -4,8 +4,9 @@ const planUrl = "https://data.mobilites-m.fr/api/routers/default/plan";
 var lat = 45.166672;
 var lon = 5.71667;
 var map = null;
-var currentItinary = null;
-var currentMarkers = [];
+var shownItinerary = [];
+var shownMarkers = [];
+let itineraries = [];
 // Fonction d'initialisation de la carte
 function initMap() {
     // Créer l'objet "macarte" et l'insèrer dans l'élément HTML qui a l'ID "map"
@@ -19,7 +20,7 @@ function initMap() {
     }).addTo(map);
 }
 
-function addItinary() {
+function fetchItinaries() {
     const startInput = document.querySelector('input#start-point');
     const endInput = document.querySelector('input#end-point');
     const modeSelect = document.querySelector('.transport-btn.active');
@@ -31,6 +32,8 @@ function addItinary() {
     var mode = modeSelect.value.toUpperCase();
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=${mode}`;
 
+    console.log(mode);
+
     if (avoidHighways) {
         otpUrl += "&avoid=highways";
     }
@@ -39,40 +42,83 @@ function addItinary() {
         otpUrl += "&bikePreference=preferBikeLanes";
     }
 
-    if (currentItinary) {
-        map.removeLayer(currentItinary);
-    }
+    // if (currentItinary) {
+    //     currentItinary.forEach((itinary) => {
+    //         map.removeLayer(itinary);
+    //     });
+    // }
 
-    if (currentMarkers) {
-        currentMarkers.forEach((marker) => {
-            map.removeLayer(marker);
-        });
-    }
+    // if (currentMarkers) {
+    //     currentMarkers.forEach((marker) => {
+    //         map.removeLayer(marker);
+    //     });
+    // }
+
+    const itineraryContainer = document.querySelector('.itinerary-container');
+    itineraryContainer.innerHTML = '';
 
     fetch(otpUrl)
         .then(response => response.json())
         .then(data => {
             if (data.plan && data.plan.itineraries && data.plan.itineraries.length > 0) {
-                var itinerary = data.plan.itineraries[0];
-                var legs = itinerary.legs;
-                var latlngs = [];
+                data.plan.itineraries.forEach((itinerary, index) => {
+                    let transportType = '';
+                    let transportIcon = '';
+                    let transportLength = '';
+                    let mode = modeSelect.value;
 
-                const leg = legs[0];
-                leg.steps.forEach(step => {
-                    const loc = [step.lat, step.lon];
+                    switch (mode) {
+                        case 'WALK':
+                            transportType = 'Marche';
+                            transportIcon = 'walking';
+                            break;
+                        case 'TRANSIT':
+                            transportType = 'Transport en commun';
+                            transportIcon = 'bus';
+                            break;
+                        case 'BICYCLE':
+                            transportType = 'Vélo';
+                            transportIcon = 'bicycle';
+                            break;
+                        case 'CAR':
+                            transportType = 'Voiture';
+                            transportIcon = 'car';
+                            break;
+                    }
 
-                    latlngs.push(loc);
-                })
+                    if (data.plan.itineraries.length > 1 && index == 0) {
+                        // Itiniraire a pied quand transport en commun
+                        transportType = 'Marche';
+                        transportIcon = 'walking';
+                        mode = "WALK";
+                    }
 
-                // Ajouter une ligne polyline à la carte
-                currentItinary = L.polyline(latlngs, { color: 'red' }).addTo(map);
-
-                // Ajouter des marqueurs au point de départ et d'arrivée
-                currentMarkers.push(L.marker(latlngs[0]).addTo(map).bindPopup('Point de départ').openPopup());
-                currentMarkers.push(L.marker(latlngs[latlngs.length - 1]).addTo(map).bindPopup('Point d\'arrivée').openPopup());
-
-                // Zoomer sur l'itinéraire
-                map.fitBounds(currentItinary.getBounds());
+                    const itineraryElement = document.createElement('div');
+                    itineraryElement.classList.add('itinerary-card');
+                    itineraryElement.innerHTML = `
+                        <div class="itinerary-header ${mode.toLowerCase()}" num="${index}">
+                            <i class="fas fa-${transportIcon}"></i>
+                                <div class="itinerary-main-info">
+                                    <div class="transport-type">${transportType}</div>
+                                    <div class="time-info">
+                                        <span>45 min</span>
+                                        <span>•</span>
+                                        <span>10:30 - 11:15</span>
+                                    </div>
+                                </div>
+                                <div class="itinerary-details">
+                                    <div class="route-steps">
+                                        <div class="step"><i class="fas fa-walking"></i> 5 min marche</div>
+                                        <div class="step"><i class="fas fa-bus"></i> Ligne C1 • 30 min</div>
+                                        <div class="step"><i class="fas fa-walking"></i> 10 min marche</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    itineraryContainer.appendChild(itineraryElement);
+                    itineraries.push(itinerary);
+                    
+                });
             } else {
                 console.error('Aucun itinéraire trouvé.');
             }
@@ -82,11 +128,59 @@ function addItinary() {
         });
 }
 
+function showItinerary(itineraryIdx) {
+    shownItinerary.forEach((itinerary) => {
+        map.removeLayer(itinerary);
+    });
+    shownMarkers.forEach((marker) => {
+        map.removeLayer(marker);
+    });
+    
+    const itinerary = itineraries[itineraryIdx];
+
+    var legs = itinerary.legs;
+    let latlngs = [];
+
+    legs.forEach(leg => {
+        const polyline = L.Polyline.fromEncoded(leg.legGeometry.points);
+        shownItinerary.push(polyline);
+        
+        latlngs = latlngs.concat(polyline.getLatLngs());
+        const dashArray = leg.mode === "WALK" ? '5, 10' : 'none';
+        polyline.setStyle({ dashArray: dashArray }).addTo(map);
+    });
+
+    // Ajouter des marqueurs au point de départ et d'arrivée
+    shownMarkers.push(L.marker(latlngs[0]).addTo(map).bindPopup('Point de départ').openPopup());
+    shownMarkers.push(L.marker(latlngs[latlngs.length - 1]).addTo(map).bindPopup('Point d\'arrivée').openPopup());
+
+    // Zoomer sur l'itinéraire
+    map.fitBounds(L.polyline([latlngs[0], latlngs[latlngs.length - 1]]).getBounds());
+}
+
 window.onload = function () {
-    // Fonction d'initialisation qui s'exécute lorsque le DOM est chargé
+    // Function that runs when DOM is loaded
     initMap();
-    // addItinary();
 
     const submitItinary = document.querySelector('#generate-route');
-    submitItinary.addEventListener('click', (ev) => addItinary());
-};
+    submitItinary.addEventListener('click', (ev) => fetchItinaries());
+
+    document.querySelectorAll('button.transport-btn').forEach((btn) => {
+        btn.addEventListener('click', (ev) => {
+            document.querySelectorAll('button.transport-btn').forEach((btn) => {
+                btn.classList.remove('active');
+            });
+
+            btn.classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('.itinerary-container').forEach((container) => {
+        container.addEventListener('click', (ev) => {
+            const itineraryCard = ev.target.closest('.itinerary-header');
+            if (itineraryCard) {
+                showItinerary(itineraryCard.getAttribute('num'));
+            }
+        });
+    });
+}

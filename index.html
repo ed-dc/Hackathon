@@ -29,26 +29,26 @@
                     </div>
                     <div class="input-group">
                         <i class="fas fa-location-arrow"></i>
-                        <input type="text" id="end-point" placeholder="Destination" value="45.2325079,5.681781">
+                        <input type="text" id="end-point" placeholder="Destination" value="45.1904435,5.7252643">
                     </div>
                 </div>
 
                 <div class="transport-options">
                     <h3>Mode de transport</h3>
                     <div class="transport-buttons">
-                        <button class="transport-btn active" data-mode="car">
+                        <button class="transport-btn active" value="CAR">
                             <i class="fas fa-car"></i>
                             <span>Voiture</span>
                         </button>
-                        <button class="transport-btn" data-mode="bike">
+                        <button class="transport-btn" value="BICYCLE">
                             <i class="fas fa-bicycle"></i>
                             <span>Vélo</span>
                         </button>
-                        <button class="transport-btn" data-mode="walk">
+                        <button class="transport-btn" value="WALK">
                             <i class="fas fa-walking"></i>
                             <span>Marche</span>
                         </button>
-                        <button class="transport-btn" data-mode="public-transport">
+                        <button class="transport-btn" value="TRANSIT">
                             <i class="fas fa-bus"></i>
                             <span>Transport</span>
                         </button>
@@ -81,7 +81,9 @@
 
                 <div class="results" id="results">
                     <h3>Itinéraire</h3>
-                    <div id="itinerary-details" class="itinerary-container"></div>
+                    <div id="itinerary-details" class="itinerary-container">
+
+                    </div>
                 </div>
             </div>
 
@@ -93,6 +95,7 @@
     <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
         integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
         crossorigin=""></script>
+    <script src="src/Polyline.encoded.js"></script>
     <script type="text/javascript" src="src/main.js"></script>
 </body>
 
