@@ -76,7 +76,7 @@ function fetchItinaries() {
                     let transportIcon = '';
                     let transportLength = '';
                     let mode = modeSelect.value;
-
+                    console.log(itinerary);
                     switch (mode) {
                         case 'WALK':
                             transportType = 'Marche';
@@ -109,26 +109,51 @@ function fetchItinaries() {
                     if (index == 0) {
                         itineraryElement.classList.add('active');
                     }
+                    const startTime = new Date(itinerary.startTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    const endTime = new Date(itinerary.endTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
                     itineraryElement.innerHTML = `
                         <div class="itinerary-header ${mode.toLowerCase()}">
                             <i class="fas fa-${transportIcon}"></i>
                                 <div class="itinerary-main-info">
                                     <div class="transport-type">${transportType}</div>
                                     <div class="time-info">
-                                        <span>45 min</span>
+                                        <span>${Math.round(itinerary.duration / 60)} min</span>
                                         <span>•</span>
-                                        <span>10:30 - 11:15</span>
+                                        <span>${startTime} - ${endTime}</span>
                                     </div>
                                 </div>
-                                <div class="itinerary-details">
+                                <!--<div class="itinerary-details">
                                     <div class="route-steps">
                                         <div class="step"><i class="fas fa-walking"></i> 5 min marche</div>
                                         <div class="step"><i class="fas fa-bus"></i> Ligne C1 • 30 min</div>
                                         <div class="step"><i class="fas fa-walking"></i> 10 min marche</div>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         `;
+                    if (mode == "TRANSIT") {
+                        const itineraryDetails = document.createElement('div');
+                        itineraryDetails.classList.add('itinerary-details');
+                        const routeSteps = document.createElement('div');
+                        routeSteps.classList.add('route-steps');
+
+                        itinerary.legs.forEach(leg => {
+                            const legIcon = leg.mode === 'WALK' ? 'walking' : (leg.mode === 'BUS' ? 'bus' : 'tram');
+                            const legLength = leg.distance.toFixed(0);
+                            const legTime = Math.round(leg.duration / 60);
+
+                            routeSteps.innerHTML += `
+                                    <div class="step">
+                                        <i class="fas fa-${legIcon}"></i>
+                                        <!--${leg.mode === 'WALK' ? "marche" : (leg.mode === 'BUS' ? 'Bus' : 'Tram')}-->
+                                        ${leg.route ? `${leg.mode === 'BUS' ? 'Bus' : 'Tram'} ${leg.routeShortName} • ` : ''}
+                                        ${leg.duration > 0 ? `${legTime} min` : ''}
+                                    </div>`
+                        });
+                        itineraryDetails.appendChild(routeSteps);
+                        itineraryElement.children[0].appendChild(itineraryDetails);
+                    }
                     itineraryContainer.appendChild(itineraryElement);
                     itineraries.push(itinerary);
                     showItinerary(0);
@@ -192,7 +217,7 @@ function setupMapClickListener() {
     map.on('click', function (e) {
         const lat = e.latlng.lat.toFixed(6);
         const lng = e.latlng.lng.toFixed(6);
-        const coordStr = `${lat}, ${lng}`;
+        const coordStr = `${lat}, ${lng} `;
 
         if (!startCoords) {
             // Set starting point
