@@ -11,8 +11,51 @@
 </head>
 
 <body>
-    <div id="map">
-        <!-- Ici s'affichera la carte -->
+    <div class="container">
+        <div class="sidebar">
+            <h1>MyGrenoble</h1>
+
+            <label for="start-point">Point de départ</label>
+            <input type="text" id="start-point" placeholder="Click on map or enter coordinates">
+
+            <label for="end-point">Déstination</label>
+            <input type="text" id="end-point" placeholder="Click on map or enter coordinates">
+
+            <label for="transport-mode">Transportation Mode</label>
+            <select id="transport-mode">
+                <option value="car">Car</option>
+                <option value="bike">Bicycle</option>
+                <option value="walk">Walking</option>
+                <option value="public-transport">Public Transport</option>
+                <option value="mixed">Mixed (Optimal)</option>
+            </select>
+
+            <label for="options">Options</label>
+            <div>
+                <input type="checkbox" id="avoid-highways" value="avoid-highways">
+                <label for="avoid-highways">Avoid Highways</label>
+            </div>
+            <div>
+                <input type="checkbox" id="prefer-bike-lanes" value="prefer-bike-lanes">
+                <label for="prefer-bike-lanes">Prefer Bike Lanes</label>
+            </div>
+
+            <button id="generate-route">Generate Route</button>
+
+            <div class="loader">
+                <div class="spinner"></div>
+                <p>Calculating route...</p>
+            </div>
+
+            <div class="results" id="results">
+                <h2>Itinerary</h2>
+                <div id="itinerary-details"></div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
         integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="

@@ -1,3 +1,5 @@
+const planUrl = "https://data.mobilites-m.fr/api/routers/default/plan";
+
 // On initialise la latitude et la longitude de Paris (centre de la carte)
 var lat = 45.166672;
 var lon = 5.71667;
@@ -14,7 +16,18 @@ function initMap() {
         maxZoom: 20
     }).addTo(macarte);
 }
+
+function addItinary() {
+    fetch(`${planUrl}?fromPlace=45.1871312,5.7279306&toPlace=45.193287,5.7683957`, {
+        method: "GET",
+    }).then(res => res.json())
+        .then(res => res.plan.itineraries.forEach(itinerarie => {
+            console.log(itinerarie.legs);
+        }));
+}
+
 window.onload = function () {
     // Fonction d'initialisation qui s'exécute lorsque le DOM est chargé
     initMap();
+    addItinary();
 };
