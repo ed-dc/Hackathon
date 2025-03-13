@@ -33,7 +33,10 @@ function fetchItinaries() {
 
     var start = startInput.value; // Coordonnées de départ
     var end = endInput.value; // Coordonnées d'arrivée
-    console.log(start, end);
+
+    if (startInput.value === '' || endInput.value === '') {
+        return;
+    }
 
     if (!isCoordinateFormat(startInput.value.replaceAll(' ', '')) || !isCoordinateFormat(endInput.value.replaceAll(' ', ''))) {
         if (!isCoordinateFormat(startInput.value)) {
@@ -50,7 +53,6 @@ function fetchItinaries() {
     var mode = modeSelect.value.toUpperCase();
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=${mode}`;
 
-    console.log(mode);
 
     if (avoidHighways) {
         otpUrl += "&avoid=highways";
@@ -103,8 +105,12 @@ function fetchItinaries() {
 
                     const itineraryElement = document.createElement('div');
                     itineraryElement.classList.add('itinerary-card');
+                    itineraryElement.setAttribute('num', index);
+                    if (index == 0) {
+                        itineraryElement.classList.add('active');
+                    }
                     itineraryElement.innerHTML = `
-                        <div class="itinerary-header ${mode.toLowerCase()}" num="${index}">
+                        <div class="itinerary-header ${mode.toLowerCase()}">
                             <i class="fas fa-${transportIcon}"></i>
                                 <div class="itinerary-main-info">
                                     <div class="transport-type">${transportType}</div>
@@ -125,7 +131,7 @@ function fetchItinaries() {
                         `;
                     itineraryContainer.appendChild(itineraryElement);
                     itineraries.push(itinerary);
-                    console.log(itinerary);
+                    showItinerary(0);
 
                 });
             } else {
@@ -137,7 +143,7 @@ function fetchItinaries() {
         });
 }
 
-function showItinerary(itineraryIdx) {
+function showItinerary(itineraryIdx = 0) {
     shownItinerary.forEach((itinerary) => {
         map.removeLayer(itinerary);
     });
@@ -156,7 +162,12 @@ function showItinerary(itineraryIdx) {
 
         latlngs = latlngs.concat(polyline.getLatLngs());
         const dashArray = leg.mode === "WALK" ? '5, 10' : 'none';
-        polyline.setStyle({ dashArray: dashArray }).addTo(map);
+        polyline.setStyle({
+            dashArray: dashArray,
+            weight: 5,
+            opacity: 0.8,
+            smoothFactor: 1
+        }).addTo(map);
     });
 
     // Ajouter des marqueurs au point de départ et d'arrivée
@@ -338,8 +349,8 @@ window.onload = function () {
 
     setupPlaceSearch();
 
-    const submitItinary = document.querySelector('#generate-route');
-    submitItinary.addEventListener('click', (ev) => fetchItinaries());
+    // const submitItinary = document.querySelector('#generate-route');
+    // submitItinary.addEventListener('click', (ev) => fetchItinaries());
 
     const resetButton = document.querySelector('.reset-button');
     if (resetButton) {
@@ -353,12 +364,18 @@ window.onload = function () {
             });
 
             btn.classList.add('active');
+            fetchItinaries();
         });
     });
 
     document.querySelectorAll('.itinerary-container').forEach((container) => {
         container.addEventListener('click', (ev) => {
-            const itineraryCard = ev.target.closest('.itinerary-header');
+            const itineraryCard = ev.target.closest('.itinerary-card');
+            document.querySelectorAll('.itinerary-card').forEach((it) => {
+                it.classList.remove('active');
+            });
+
+            itineraryCard.classList.add('active');
             if (itineraryCard) {
                 showItinerary(itineraryCard.getAttribute('num'));
             }

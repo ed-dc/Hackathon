@@ -242,6 +242,13 @@ h3 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.itinerary-card.active {
+    background: #F8F9FA;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+}
+
 .itinerary-header {
     padding: 1.2rem;
     display: grid;
