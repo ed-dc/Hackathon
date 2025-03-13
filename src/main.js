@@ -25,15 +25,19 @@ const endIcon = L.divIcon({
 // Fonction d'initialisation de la carte
 function initMap() {
     // Créer l'objet "macarte" et l'insèrer dans l'élément HTML qui a l'ID "map"
-    map = L.map('map').setView([lat, lon], 11);
-    // Leaflet ne récupère pas les cartes (tiles) sur un serveur par défaut. Nous devons lui préciser où nous souhaitons les récupérer. Ici, openstreetmap.fr
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
-        // Il est toujours bien de laisser le lien vers la source des données
-        attributionControl: false,
-        minZoom: 13,
-        maxZoom: 20
-    }).addTo(map);
+    map = L.map('map', {
+        zoomControl: true,
+        maxZoom: 20,
+        minZoom: 13
+    }).setView([lat, lon], 11);
 
+    // Utilisation d'une carte plus simple de Carto
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '',
+        subdomains: 'abcd',
+        maxZoom: 20,
+        minZoom: 13
+    }).addTo(map);
     setupMapClickListener();
 }
 
