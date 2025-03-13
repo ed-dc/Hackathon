@@ -4,6 +4,8 @@ const planUrl = "https://data.mobilites-m.fr/api/routers/default/plan";
 var lat = 45.166672;
 var lon = 5.71667;
 var map = null;
+var currentItinary = null;
+var currentMarkers = [];
 // Fonction d'initialisation de la carte
 function initMap() {
     // Créer l'objet "macarte" et l'insèrer dans l'élément HTML qui a l'ID "map"
@@ -18,25 +20,22 @@ function initMap() {
 }
 
 function addItinary() {
-    // fetch(`${planUrl}?fromPlace=&toPlace`, {
-    //     method: "GET",
-    // }).then(res => res.json())
-    //     .then(res => res.plan.itineraries.forEach(itinerarie => {
-    //         itinerarie.legs.forEach(leg => {
-    //             // console.log(leg.from, leg.to);
-    //             const from = [leg.from.lat, leg.from.lon];
-    //             const to = [leg.to.lat, leg.to.lon];
-    //             var polyline = new L.polyline([from, to], {
-    //                 color: 'red'
-    //             });
-    //             polyline.addTo(map);
-    //             // console.log("added to map");
-    //         })
-    //     }));
+    const startInput = document.querySelector('input#start-point');
+    const endInput = document.querySelector('input#end-point');
 
-    var start = '45.1871312,5.7279306'; // Coordonnées de départ (Paris)
-    var end = '45.193287,5.7683957'; // Coordonnées d'arrivée
+    var start = startInput.value; // Coordonnées de départ
+    var end = endInput.value; // Coordonnées d'arrivée
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=WALK`;
+
+    if (currentItinary) {
+        map.removeLayer(currentItinary);
+    }
+
+    if (currentMarkers) {
+        currentMarkers.forEach((marker) => {
+            map.removeLayer(marker);
+        });
+    }
 
     fetch(otpUrl)
         .then(response => response.json())
@@ -45,7 +44,6 @@ function addItinary() {
                 var itinerary = data.plan.itineraries[0];
                 var legs = itinerary.legs;
                 var latlngs = [];
-                console.log(legs);
 
                 const leg = legs[0];
                 leg.steps.forEach(step => {
@@ -55,16 +53,14 @@ function addItinary() {
                 })
 
                 // Ajouter une ligne polyline à la carte
-                var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
+                currentItinary = L.polyline(latlngs, { color: 'red' }).addTo(map);
 
                 // Ajouter des marqueurs au point de départ et d'arrivée
-                var startMarker = L.marker(latlngs[0]).addTo(map)
-                    .bindPopup('Point de départ').openPopup();
-                var endMarker = L.marker(latlngs[latlngs.length - 1]).addTo(map)
-                    .bindPopup('Point d\'arrivée').openPopup();
+                currentMarkers.push(L.marker(latlngs[0]).addTo(map).bindPopup('Point de départ').openPopup());
+                currentMarkers.push(L.marker(latlngs[latlngs.length - 1]).addTo(map).bindPopup('Point d\'arrivée').openPopup());
 
                 // Zoomer sur l'itinéraire
-                map.fitBounds(polyline.getBounds());
+                map.fitBounds(currentItinary.getBounds());
             } else {
                 console.error('Aucun itinéraire trouvé.');
             }
@@ -77,5 +73,8 @@ function addItinary() {
 window.onload = function () {
     // Fonction d'initialisation qui s'exécute lorsque le DOM est chargé
     initMap();
-    addItinary();
+    // addItinary();
+
+    const submitItinary = document.querySelector('#generate-route');
+    submitItinary.addEventListener('click', (ev) => addItinary());
 };
