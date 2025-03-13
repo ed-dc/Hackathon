@@ -7,56 +7,87 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
         integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
         crossorigin="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="src/style.css" />
 </head>
 
 <body>
     <div class="container">
-        <div class="sidebar">
-            <h1>MyGrenoble</h1>
-
-            <label for="start-point">Point de départ</label>
-            <input type="text" id="start-point" placeholder="Click on map or enter coordinates"
-                value="45.193287,5.7683957">
-
-            <label for="end-point">Déstination</label>
-            <input type="text" id="end-point" placeholder="Click on map or enter coordinates"
-                value="45.2325079,5.681781">
-
-            <label for="transport-mode">Transportation Mode</label>
-            <select id="transport-mode">
-                <option value="car">Car</option>
-                <option value="bike">Bicycle</option>
-                <option value="walk">Walking</option>
-                <option value="public-transport">Public Transport</option>
-                <option value="mixed">Mixed (Optimal)</option>
-            </select>
-
-            <label for="options">Options</label>
-            <div>
-                <input type="checkbox" id="avoid-highways" value="avoid-highways">
-                <label for="avoid-highways">Avoid Highways</label>
+        <nav class="top-nav">
+            <div class="logo">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>MyGrenoble</span>
             </div>
-            <div>
-                <input type="checkbox" id="prefer-bike-lanes" value="prefer-bike-lanes">
-                <label for="prefer-bike-lanes">Prefer Bike Lanes</label>
+        </nav>
+
+        <div class="content-wrapper">
+            <div class="sidebar">
+                <div class="search-container">
+                    <div class="input-group">
+                        <i class="fas fa-location-dot"></i>
+                        <input type="text" id="start-point" placeholder="Point de départ" value="45.193287,5.7683957">
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-location-arrow"></i>
+                        <input type="text" id="end-point" placeholder="Destination" value="45.2325079,5.681781">
+                    </div>
+                </div>
+
+                <div class="transport-options">
+                    <h3>Mode de transport</h3>
+                    <div class="transport-buttons">
+                        <button class="transport-btn active" data-mode="car">
+                            <i class="fas fa-car"></i>
+                            <span>Voiture</span>
+                        </button>
+                        <button class="transport-btn" data-mode="bike">
+                            <i class="fas fa-bicycle"></i>
+                            <span>Vélo</span>
+                        </button>
+                        <button class="transport-btn" data-mode="walk">
+                            <i class="fas fa-walking"></i>
+                            <span>Marche</span>
+                        </button>
+                        <button class="transport-btn" data-mode="public-transport">
+                            <i class="fas fa-bus"></i>
+                            <span>Transport</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="additional-options">
+                    <h3>Options</h3>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="avoid-highways">
+                        <span class="checkmark"></span>
+                        Éviter les autoroutes
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="prefer-bike-lanes">
+                        <span class="checkmark"></span>
+                        Privilégier les pistes cyclables
+                    </label>
+                </div>
+
+                <button id="generate-route" class="primary-button">
+                    <i class="fas fa-route"></i>
+                    Générer l'itinéraire
+                </button>
+
+                <div class="loader">
+                    <div class="spinner"></div>
+                    <p>Calcul de l'itinéraire...</p>
+                </div>
+
+                <div class="results" id="results">
+                    <h3>Itinéraire</h3>
+                    <div id="itinerary-details" class="itinerary-container"></div>
+                </div>
             </div>
 
-            <button id="generate-route">Generate Route</button>
-
-            <div class="loader">
-                <div class="spinner"></div>
-                <p>Calculating route...</p>
+            <div class="map-container">
+                <div id="map"></div>
             </div>
-
-            <div class="results" id="results">
-                <h2>Itinerary</h2>
-                <div id="itinerary-details"></div>
-            </div>
-        </div>
-
-        <div class="map-container">
-            <div id="map"></div>
         </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
@@ -64,6 +95,5 @@
         crossorigin=""></script>
     <script type="text/javascript" src="src/main.js"></script>
 </body>
-
 
 </html>

@@ -1,6 +1,6 @@
 const planUrl = "https://data.mobilites-m.fr/api/routers/default/plan";
 
-// On initialise la latitude et la longitude de Paris (centre de la carte)
+// On initialise la latitude et la longitude de Grenoble (centre de la carte)
 var lat = 45.166672;
 var lon = 5.71667;
 var map = null;
@@ -22,10 +22,22 @@ function initMap() {
 function addItinary() {
     const startInput = document.querySelector('input#start-point');
     const endInput = document.querySelector('input#end-point');
+    const modeSelect = document.querySelector('.transport-btn.active');
+    const avoidHighways = document.querySelector('input#avoid-highways').checked;
+    const preferBikeLanes = document.querySelector('input#prefer-bike-lanes').checked;
 
     var start = startInput.value; // Coordonnées de départ
     var end = endInput.value; // Coordonnées d'arrivée
-    var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=WALK`;
+    var mode = modeSelect.value.toUpperCase();
+    var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=${mode}`;
+
+    if (avoidHighways) {
+        otpUrl += "&avoid=highways";
+    }
+
+    if (preferBikeLanes) {
+        otpUrl += "&bikePreference=preferBikeLanes";
+    }
 
     if (currentItinary) {
         map.removeLayer(currentItinary);
