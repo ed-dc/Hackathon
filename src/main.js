@@ -7,6 +7,8 @@ var map = null;
 var shownItinerary = [];
 var shownMarkers = [];
 let itineraries = [];
+let startCoords = null;
+let endCoords = null;
 // Fonction d'initialisation de la carte
 function initMap() {
     // Créer l'objet "macarte" et l'insèrer dans l'élément HTML qui a l'ID "map"
@@ -18,6 +20,8 @@ function initMap() {
         minZoom: 13,
         maxZoom: 20
     }).addTo(map);
+
+    setupMapClickListener();
 }
 
 function fetchItinaries() {
@@ -29,6 +33,19 @@ function fetchItinaries() {
 
     var start = startInput.value; // Coordonnées de départ
     var end = endInput.value; // Coordonnées d'arrivée
+
+    if (!isCoordinateFormat(startInput.value.replaceAll(' ', '')) || !isCoordinateFormat(endInput.value.replaceAll(' ', ''))) {
+        if (!isCoordinateFormat(startInput.value)) {
+            searchPlace(startInput.value, true);
+            start = document.querySelector('input#start-point').value;
+        }
+        if (!isCoordinateFormat(endInput.value)) {
+            searchPlace(endInput.value, false);
+            end = document.querySelector('input#end-point').value;
+        }
+    }
+
+
     var mode = modeSelect.value.toUpperCase();
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=${mode}`;
 
@@ -41,18 +58,6 @@ function fetchItinaries() {
     if (preferBikeLanes) {
         otpUrl += "&bikePreference=preferBikeLanes";
     }
-
-    // if (currentItinary) {
-    //     currentItinary.forEach((itinary) => {
-    //         map.removeLayer(itinary);
-    //     });
-    // }
-
-    // if (currentMarkers) {
-    //     currentMarkers.forEach((marker) => {
-    //         map.removeLayer(marker);
-    //     });
-    // }
 
     const itineraryContainer = document.querySelector('.itinerary-container');
     itineraryContainer.innerHTML = '';
@@ -86,7 +91,7 @@ function fetchItinaries() {
                             break;
                     }
 
-                    if (data.plan.itineraries.length > 1 && index == 0) {
+                    if (data.plan.itineraries.length > 1 && itinerary.legs.length == 1 && itinerary.legs[0].mode == 'WALK') {
                         // Itiniraire a pied quand transport en commun
                         transportType = 'Marche';
                         transportIcon = 'walking';
@@ -117,7 +122,7 @@ function fetchItinaries() {
                         `;
                     itineraryContainer.appendChild(itineraryElement);
                     itineraries.push(itinerary);
-                    
+
                 });
             } else {
                 console.error('Aucun itinéraire trouvé.');
@@ -135,7 +140,7 @@ function showItinerary(itineraryIdx) {
     shownMarkers.forEach((marker) => {
         map.removeLayer(marker);
     });
-    
+
     const itinerary = itineraries[itineraryIdx];
 
     var legs = itinerary.legs;
@@ -144,7 +149,7 @@ function showItinerary(itineraryIdx) {
     legs.forEach(leg => {
         const polyline = L.Polyline.fromEncoded(leg.legGeometry.points);
         shownItinerary.push(polyline);
-        
+
         latlngs = latlngs.concat(polyline.getLatLngs());
         const dashArray = leg.mode === "WALK" ? '5, 10' : 'none';
         polyline.setStyle({ dashArray: dashArray }).addTo(map);
@@ -158,12 +163,184 @@ function showItinerary(itineraryIdx) {
     map.fitBounds(L.polyline([latlngs[0], latlngs[latlngs.length - 1]]).getBounds());
 }
 
+//test si la valeur est un format de coordonnées
+function isCoordinateFormat(value) {
+    // Regular expression to match coordinate format like "45.7, 56.8" or "45.7,56.8"
+    const coordRegex = /^[-+]?([0-9]*\.[0-9]+|[0-9]+),\s*[-+]?([0-9]*\.[0-9]+|[0-9]+)$/;
+
+    return coordRegex.test(value);
+}
+
+
+
+function setupMapClickListener() {
+    map.on('click', function (e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        const coordStr = `${lat}, ${lng}`;
+
+        if (!startCoords) {
+            // Set starting point
+            startCoords = coordStr;
+            document.getElementById('start-point').value = coordStr;
+
+            // Add a marker for the starting point
+            if (shownMarkers.length > 0) {
+                shownMarkers.forEach(marker => map.removeLayer(marker));
+                shownMarkers = [];
+            }
+
+            const startMarker = L.marker([lat, lng]).addTo(map);
+            startMarker.bindPopup('Point de départ').openPopup();
+            shownMarkers.push(startMarker);
+
+            console.log("Starting point set:", coordStr);
+        }
+        else if (!endCoords) {
+            // Set destination
+            endCoords = coordStr;
+            document.getElementById('end-point').value = coordStr;
+
+            // Add a marker for the end point
+            const endMarker = L.marker([lat, lng]).addTo(map);
+            endMarker.bindPopup('Point d\'arrivée').openPopup();
+            shownMarkers.push(endMarker);
+
+            console.log("Destination set:", coordStr);
+
+            // Automatically generate the itinerary once both points are set
+            fetchItinaries();
+        }
+        else {
+            // If both points are already set, reset and start over with a new starting point
+            startCoords = coordStr;
+            endCoords = null;
+
+            // Clear existing markers and itinerary
+            if (shownMarkers.length > 0) {
+                shownMarkers.forEach(marker => map.removeLayer(marker));
+                shownMarkers = [];
+            }
+
+            if (shownItinerary.length > 0) {
+                shownItinerary.forEach(itinerary => map.removeLayer(itinerary));
+                shownItinerary = [];
+            }
+
+            // Set new starting point
+            document.getElementById('start-point').value = coordStr;
+            document.getElementById('end-point').value = '';
+
+            // Add a marker for the new starting point
+            const startMarker = L.marker([lat, lng]).addTo(map);
+            startMarker.bindPopup('Point de départ').openPopup();
+            shownMarkers.push(startMarker);
+
+            console.log("Reset: new starting point set:", coordStr);
+        }
+    });
+}
+
+
+
+//Fonction pour rechercher une place / lieux de grenoble et obtenir les coordonnées
+
+function searchPlace(query, bool_start = true) {
+
+    const searchQuery = `${query}, Grenoble, France`;
+
+    const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`;
+
+    fetch(searchUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                const place = data[0];
+                const lat = place.lat;
+                const lon = place.lon;
+                const coords = `${lat}, ${lon}`;
+
+                if (bool_start) {
+                    startCoords = coords;
+                    document.getElementById('start-point').value = coords;
+                } else {
+                    endCoords = coords;
+                    document.getElementById('end-point').value = coords;
+                }
+
+                const marker = L.marker([lat, lon]).addTo(map);
+                marker.bindPopup(query).openPopup(); //affiche le nom du lieu en pop up
+                shownMarkers.push(marker);
+
+                if (startCoords && endCoords) {
+                    fetchItinaries();
+                }
+            } else {
+                console.error('Aucun lieu trouvé.');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération des données de l\'itinéraire:', error);
+        });
+
+}
+
+
+// Fonction pour configurer les champs de saisie pour la recherche
+function setupPlaceSearch() {
+    const startInput = document.getElementById('start-point');
+    const endInput = document.getElementById('end-point');
+
+    if (startInput) {
+        startInput.addEventListener('keypress', function (event) {
+
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const query = this.value.trim();
+
+
+                // Rechercher le lieu
+                searchPlace(query, true);
+            }
+            else {
+                searchPlace(query, true);
+            }
+        });
+    }
+
+    // Configurer l'événement pour la destination
+    if (endInput) {
+        endInput.addEventListener('keypress', function (event) {
+
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const query = this.value.trim();
+
+                // Rechercher le lieu
+                searchPlace(query, false);
+            }
+        });
+
+    }
+}
+
+
+
+
 window.onload = function () {
     // Function that runs when DOM is loaded
     initMap();
 
+
+    setupPlaceSearch();
+
     const submitItinary = document.querySelector('#generate-route');
     submitItinary.addEventListener('click', (ev) => fetchItinaries());
+
+    const resetButton = document.querySelector('.reset-button');
+    if (resetButton) {
+        resetButton.addEventListener('click', resetRoute);
+    }
 
     document.querySelectorAll('button.transport-btn').forEach((btn) => {
         btn.addEventListener('click', (ev) => {
