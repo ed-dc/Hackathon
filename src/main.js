@@ -33,6 +33,7 @@ function fetchItinaries() {
 
     var start = startInput.value; // Coordonnées de départ
     var end = endInput.value; // Coordonnées d'arrivée
+    console.log(start, end);
 
     if (!isCoordinateFormat(startInput.value.replaceAll(' ', '')) || !isCoordinateFormat(endInput.value.replaceAll(' ', ''))) {
         if (!isCoordinateFormat(startInput.value)) {
@@ -61,6 +62,8 @@ function fetchItinaries() {
 
     const itineraryContainer = document.querySelector('.itinerary-container');
     itineraryContainer.innerHTML = '';
+
+    itineraries = [];
 
     fetch(otpUrl)
         .then(response => response.json())
@@ -122,6 +125,7 @@ function fetchItinaries() {
                         `;
                     itineraryContainer.appendChild(itineraryElement);
                     itineraries.push(itinerary);
+                    console.log(itinerary);
 
                 });
             } else {
@@ -294,17 +298,17 @@ function setupPlaceSearch() {
     if (startInput) {
         startInput.addEventListener('keypress', function (event) {
 
+            const query = this.value.trim();
             if (event.key === 'Enter') {
                 event.preventDefault();
-                const query = this.value.trim();
 
 
                 // Rechercher le lieu
                 searchPlace(query, true);
             }
-            else {
-                searchPlace(query, true);
-            }
+            // else {
+            //     searchPlace(query, true);
+            // }
         });
     }
 
