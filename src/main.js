@@ -47,7 +47,7 @@ function fetchItinaries(isSearch = false) {
     const modeSelect = document.querySelector('.transport-btn.active');
     const avoidHighways = document.querySelector('input#avoid-highways').checked;
     const preferBikeLanes = document.querySelector('input#prefer-bike-lanes').checked;
-    var start ;
+    var start;
     var end;
 
     if (startInput.value === '' || endInput.value === '') {
@@ -61,8 +61,8 @@ function fetchItinaries(isSearch = false) {
 
     }
     else {
-        start = startInput.value; 
-        end = endInput.value; 
+        start = startInput.value;
+        end = endInput.value;
     }
 
 
@@ -231,7 +231,7 @@ function setupMapClickListener() {
         if (!startCoords) {
             // Set starting point
             startCoords = coordStr;
-            
+
             document.getElementById('start-point').value = coordStr;
 
             // Add a marker for the starting point
@@ -298,11 +298,11 @@ function setupMapClickListener() {
 function searchPlace(search, bool_start = true) {
     const searchQuery = `${search}, Grenoble, France`;
     const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`;
-    
+
     // Supprimer tout menu déroulant existant
     const existingDropdowns = document.querySelectorAll('.place-dropdown');
     existingDropdowns.forEach(dropdown => dropdown.remove());
-    
+
     fetch(searchUrl)
         .then(response => response.json())
         .then(data => {
@@ -329,56 +329,56 @@ function searchPlace(search, bool_start = true) {
 function createPlaceDropdown(places, bool_start) {
     // Déterminer le champ d'entrée concerné
     const inputElement = bool_start ? document.getElementById('start-point') : document.getElementById('end-point');
-    
+
 
     const dropdown = document.createElement('div');
     dropdown.className = 'place-dropdown';
-    
-    
+
+
     places.forEach(place => {
         const placeName = extractShortPlaceName(place.display_name);
         const coords = `${place.lat}, ${place.lon}`;
-        
+
         const option = document.createElement('div');
         option.className = 'place-option';
         option.innerHTML = `
             <div class="place-name">${placeName}</div>
             <div class="place-address">${place.display_name}</div>
         `;
-        
+
         // Ajouter un gestionnaire d'événements pour le clic sur une option
-        option.addEventListener('click', function() {
-   
+        option.addEventListener('click', function () {
+
             inputElement.value = placeName;
-            
+
 
             inputElement.setAttribute('data-coords', coords);
-            
+
             // Supprimer le menu déroulant après sélection
             dropdown.remove();
-            
- 
+
+
             addPlaceMarker(place.lat, place.lon, bool_start);
-            
+
             // Si les deux points sont définis, générer l'itinéraire
-            if (document.getElementById('start-point').getAttribute('data-coords') && 
+            if (document.getElementById('start-point').getAttribute('data-coords') &&
                 document.getElementById('end-point').getAttribute('data-coords')) {
                 fetchItinaries(true);
             }
         });
-        
+
         dropdown.appendChild(option);
     });
-    
+
     // Positionner le menu déroulant sous le champ d'entrée
     const inputRect = inputElement.getBoundingClientRect();
     dropdown.style.top = (inputRect.bottom) + 'px';
     dropdown.style.left = inputRect.left + 'px';
     dropdown.style.width = inputRect.width + 'px';
-    
+
     // Ajouter le menu déroulant au document
     document.body.appendChild(dropdown);
-    
+
     // Fermer le menu si on clique ailleurs
     document.addEventListener('click', function closeDropdown(e) {
         if (!dropdown.contains(e.target) && e.target !== inputElement) {
@@ -408,12 +408,12 @@ function addPlaceMarker(lat, lon, bool_start) {
         }
         endCoords = `${lat}, ${lon}`;
     }
-    
+
     // Ajouter le nouveau marqueur
     const markerIcon = bool_start ? startIcon : endIcon;
     const marker = L.marker([lat, lon], { icon: markerIcon }).addTo(map);
     shownMarkers.push(marker);
-    
+
     // Zoomer sur le marqueur
     map.setView([lat, lon], 15);
 }
@@ -423,21 +423,21 @@ function showNoResultsMessage(inputElement) {
     // Créer un menu déroulant avec un message d'erreur
     const dropdown = document.createElement('div');
     dropdown.className = 'place-dropdown';
-    
+
     const message = document.createElement('div');
     message.className = 'no-results';
     message.textContent = 'Aucun résultat trouvé';
-    
+
     dropdown.appendChild(message);
-    
+
     // Positionner et afficher le message
     const inputRect = inputElement.getBoundingClientRect();
     dropdown.style.top = (inputRect.bottom) + 'px';
     dropdown.style.left = inputRect.left + 'px';
     dropdown.style.width = inputRect.width + 'px';
-    
+
     document.body.appendChild(dropdown);
-    
+
     // Fermer le message après 2 secondes
     setTimeout(() => {
         dropdown.remove();
@@ -465,7 +465,7 @@ function setupPlaceSearch() {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 const query = this.value;
-                
+
                 searchPlace(query, false);
             }
         });
@@ -477,15 +477,15 @@ function setupPlaceSearch() {
 // Cette fonction extrait juste la partie la plus pertinente
 
 function extractShortPlaceName(displayName) {
-    
+
     const parts = displayName.split(',');
-    
+
 
     if (parts.length < 3) return displayName;
-    
+
     const word_0 = parts[0].trim();
     const word_1 = parts[1].trim();
-    
+
     return `${word_0}, ${word_1}`;
 }
 
@@ -521,4 +521,22 @@ window.onload = function () {
             }
         });
     });
+
+    // Gestion de la barre latérale
+    const sidebar = document.querySelector('.sidebar');
+    const trigger = document.querySelector('.sidebar-trigger');
+
+    function showSidebar() {
+        sidebar.classList.add('visible');
+    }
+
+    function hideSidebar(e) {
+        const sidebarRect = sidebar.getBoundingClientRect();
+        if (e.clientX < sidebarRect.left) {
+            sidebar.classList.remove('visible');
+        }
+    }
+
+    trigger.addEventListener('mouseenter', showSidebar);
+    sidebar.addEventListener('mouseleave', hideSidebar);
 }

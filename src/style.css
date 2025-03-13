@@ -52,6 +52,61 @@ body {
     padding: 1.5rem;
     overflow-y: auto;
     box-shadow: var(--shadow);
+    position: fixed;
+    /* right: calc(-1 * var(--sidebar-width)); */
+    right: -100%;
+    height: 100vh;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+}
+
+.sidebar.visible {
+    right: 0;
+}
+
+/* Ajouter une zone de détection */
+.sidebar-trigger {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 20px;
+    height: 100vh;
+    z-index: 999;
+
+}
+
+.sidebar-trigger-icon {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 25px;
+    height: 100px;
+    background: var(--primary-color);
+    border-radius: 8px 0 0 8px;
+    z-index: 999;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-trigger-icon::before {
+    content: '\f054';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: white;
+    font-size: 14px;
+}
+
+.sidebar-trigger-icon:hover {
+    background: #357ABD;
+}
+
+/* Modifier l'indicateur quand le menu est ouvert */
+.sidebar.visible+.sidebar-trigger-icon::before {
+    content: '\f053';
 }
 
 .search-container {
