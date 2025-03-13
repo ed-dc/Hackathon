@@ -9,6 +9,19 @@ var shownMarkers = [];
 let itineraries = [];
 let startCoords = null;
 let endCoords = null;
+
+const startIcon = L.divIcon({
+    html: '<i class="fas fa-map-marker fa-2x" style="color:rgb(0, 0, 0);"></i>',
+    iconSize: [20, 20],
+    className: 'start-icon'
+});
+
+const endIcon = L.divIcon({
+    html: '<i class="fas fa-flag fa-2x" style="color:rgb(0, 0, 0);"></i>',
+    iconSize: [20, 20],
+    className: 'end-icon'
+});
+
 // Fonction d'initialisation de la carte
 function initMap() {
     // Créer l'objet "macarte" et l'insèrer dans l'élément HTML qui a l'ID "map"
@@ -187,17 +200,19 @@ function showItinerary(itineraryIdx = 0) {
 
         latlngs = latlngs.concat(polyline.getLatLngs());
         const dashArray = leg.mode === "WALK" ? '5, 10' : 'none';
+        const color = (leg.mode === "BUS" || leg.mode === "TRAM") ? `#${leg.routeColor}` : '#3388ff';
+        console.log(color);
         polyline.setStyle({
             dashArray: dashArray,
             weight: 5,
-            opacity: 0.8,
-            smoothFactor: 1
+            smoothFactor: 1,
+            color: color,
         }).addTo(map);
     });
 
     // Ajouter des marqueurs au point de départ et d'arrivée
-    shownMarkers.push(L.marker(latlngs[0]).addTo(map).bindPopup('Point de départ').openPopup());
-    shownMarkers.push(L.marker(latlngs[latlngs.length - 1]).addTo(map).bindPopup('Point d\'arrivée').openPopup());
+    shownMarkers.push(L.marker(latlngs[0], { icon: startIcon }).addTo(map));
+    shownMarkers.push(L.marker(latlngs[latlngs.length - 1], { icon: endIcon }).addTo(map));
 
     // Zoomer sur l'itinéraire
     map.fitBounds(L.polyline([latlngs[0], latlngs[latlngs.length - 1]]).getBounds());
@@ -230,8 +245,8 @@ function setupMapClickListener() {
                 shownMarkers = [];
             }
 
-            const startMarker = L.marker([lat, lng]).addTo(map);
-            startMarker.bindPopup('Point de départ').openPopup();
+            const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
+            // startMarker.bindPopup('Point de départ').openPopup();
             shownMarkers.push(startMarker);
 
             console.log("Starting point set:", coordStr);
@@ -242,8 +257,8 @@ function setupMapClickListener() {
             document.getElementById('end-point').value = coordStr;
 
             // Add a marker for the end point
-            const endMarker = L.marker([lat, lng]).addTo(map);
-            endMarker.bindPopup('Point d\'arrivée').openPopup();
+            const endMarker = L.marker([lat, lng], { icon: endIcon }).addTo(map);
+            // endMarker.bindPopup('Point d\'arrivée').openPopup();
             shownMarkers.push(endMarker);
 
             console.log("Destination set:", coordStr);
@@ -272,8 +287,8 @@ function setupMapClickListener() {
             document.getElementById('end-point').value = '';
 
             // Add a marker for the new starting point
-            const startMarker = L.marker([lat, lng]).addTo(map);
-            startMarker.bindPopup('Point de départ').openPopup();
+            const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
+            // startMarker.bindPopup('Point de départ').openPopup();
             shownMarkers.push(startMarker);
 
             console.log("Reset: new starting point set:", coordStr);
@@ -308,8 +323,8 @@ function searchPlace(query, bool_start = true) {
                     document.getElementById('end-point').value = coords;
                 }
 
-                const marker = L.marker([lat, lon]).addTo(map);
-                marker.bindPopup(query).openPopup(); //affiche le nom du lieu en pop up
+                const marker = L.marker([lat, lon], { icon: startIcon }).addTo(map);
+                // marker.bindPopup(query).openPopup(); //affiche le nom du lieu en pop up
                 shownMarkers.push(marker);
 
                 if (startCoords && endCoords) {
