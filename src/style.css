@@ -25,7 +25,7 @@ body {
 
 .top-nav {
     display: flex;
-    align-items: center;    
+    align-items: center;
     justify-content: space-between;
     background: white;
     padding: 1rem 2rem;
@@ -180,10 +180,11 @@ body {
 
 .nav-button:hover {
     transform: translateY(-2px);
-    background-color: #6d8a36; /* Une teinte légèrement plus foncée du vert principal */
+    background-color: #6d8a36;
+    /* Une teinte légèrement plus foncée du vert principal */
 }
 
-.nav-button i{
+.nav-button i {
     font-size: 1rem;
 }
 
@@ -864,7 +865,8 @@ h3 {
     }
 
     .content-wrapper {
-        flex-direction: column;
+        margin-top: var(--top-nav-height);
+        height: calc(100% - var(--top-nav-height));
     }
 
     .sidebar {
@@ -968,7 +970,10 @@ h3 {
     }
 
     #map {
-        height: calc(100vh - var(--top-nav-height));
+        position: fixed;
+        top: var(--top-nav-height);
+        height: calc(100% - var(--top-nav-height));
+        width: 100%;
     }
 
 
