@@ -132,6 +132,10 @@ function fetchItinaries(isSearch = false) {
                             break;
                     }
 
+                    if (new Date(itinerary.startTime).getTime() < now.getTime()) {
+                        return;
+                    }
+
 
                     if (itinerary.legs.length == 1 && itinerary.legs[0].mode == 'WALK') {
                         // Itiniraire a pied quand transport en commun
@@ -330,6 +334,18 @@ function showItinerary(itineraryIdx = 0) {
             co2Emission += 4.28 * km;
         }
     });
+
+    const arriveStep = document.createElement('div');
+    arriveStep.classList.add('timeline-step');
+    arriveStep.innerHTML = `
+    <div class="timeline-marker"></div>
+    <div class="timeline-content">
+        <div class="timeline-time">
+            ${new Date(legs[legs.length - 1].endTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+        </div>
+    </div>
+        `;
+    routeTimeline.appendChild(arriveStep);
 
     const co2Container = document.createElement('div');
     co2Container.classList.add('co2-container');
@@ -798,12 +814,14 @@ window.onload = function () {
 
     );
 
-    document.querySelector('input#journey-time').addEventListener('change', (ev) => {
+    const journeyTime = document.querySelector('input#journey-time');
+    journeyTime.addEventListener('change', (ev) => {
         // if (document.getElementById('start-point').getAttribute('data-coords') ||
         //     document.getElementById('end-point').getAttribute('data-coords')) {
         //     } // TODO
         fetchItinaries(true);
     });
+    journeyTime.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 }
 
