@@ -45,7 +45,7 @@ class interestPlace {
         return this.name;
     }
 
-    get coords() {  
+    get coords() {
         return this.coords;
     }
 
@@ -97,6 +97,12 @@ function addInterestsPoints() {
                     popupContent += `<p style="margin: 0; padding: 5px;">${feature.properties.description}</p>`;
                 }
                 layer.bindPopup(popupContent);
+                layer.on('mouseover', function (e) {
+                    this.openPopup();
+                });
+                layer.on('mouseout', function (e) {
+                    this.closePopup();
+                });
             }
         }
     }).addTo(map);
@@ -454,15 +460,15 @@ function hideItinerary() {
 function fetchInterestPlaces() {
 
     // hide itineraries
-    hideItinerary();    
+    hideItinerary();
     const clickPromise = new Promise(resolve => {
 
-        const clickHandler = function(e) {
+        const clickHandler = function (e) {
 
             const lat = e.latlng.lat.toFixed(6);
             const lng = e.latlng.lng.toFixed(6);
             const coords = { lat, lng };
-            
+
 
             // Remove the click event listener to prevent multiple clicks
             map.off('click', clickHandler);
@@ -471,19 +477,19 @@ function fetchInterestPlaces() {
             L.marker([lat, lng]).addTo(map);
             resolve(coords);
         };
-        
+
         // Show instructions to the user
         alert("Please click on the map to select a location of interest");
-        
+
         // Add the click event listener to the map
         map.on('click', clickHandler);
     });
-    
-    
+
+
 
     const add_place = document.getElementById("add-interest-places-btn");
-    add_place.addEventListener('click', async function() {
-        
+    add_place.addEventListener('click', async function () {
+
         // Wait for the user to click on the map
         const selectedCoords = await clickPromise;
         console.log(selectedCoords);
