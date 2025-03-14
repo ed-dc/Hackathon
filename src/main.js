@@ -530,14 +530,14 @@ function fetchInterestPlaces() {
 
     // Original map click handler reference
     const originalMapClickHandler = map._events.click[0].fn;
-
+    let tempMarker = null;
 
     const addInterestPlaceHandler = function (e) {
         if (addingInterestPlace) {
             const lat = e.latlng.lat.toFixed(6);
             const lng = e.latlng.lng.toFixed(6);
 
-            const tempMarker = L.marker([lat, lng]).addTo(map);
+            tempMarker = L.marker([lat, lng]).addTo(map);
 
             // Store the coordinates as data attributes on the form
             temp_lat = lat;
@@ -548,6 +548,8 @@ function fetchInterestPlaces() {
 
             // Update button text
             add_place.textContent = 'Entrer un nom et une catégorie pour ce lieu';
+
+            map.off('click', addInterestPlaceHandler);
         }
     };
 
@@ -610,6 +612,27 @@ function fetchInterestPlaces() {
         map.on('click', originalMapClickHandler);
 
         addingInterestPlace = false;
+
+        map.removeLayer(tempMarker);
+
+        const finalMarker = L.marker([temp_lat, temp_lng], {icon: interestIcon,
+            opacity: 0.5} ).addTo(map);
+
+        let popupContent = `<h3 style="color:rgb(116, 168, 82); font-size: 14px; margin: 0; padding: 5px;">${placeName}</h3>`;
+   
+        popupContent += `<p style="margin: 0; padding: 5px;">${placeCategory}</p>`;
+
+        finalMarker.bindPopup(popupContent);
+
+        // Add mouseover and mouseout events to the marker instead of the map
+        finalMarker.on('mouseover', function (e) {
+            this.openPopup();
+        });
+
+        finalMarker.on('mouseout', function (e) {
+            this.closePopup();
+        });
+        
     });
 
     // Cancel button click handler
@@ -626,11 +649,7 @@ function fetchInterestPlaces() {
         map.on('click', originalMapClickHandler);
 
         // Remove the temporary marker (if any)
-        map.eachLayer(function (layer) {
-            if (layer instanceof L.Marker && !shownMarkers.includes(layer)) {
-                map.removeLayer(layer);
-            }
-        });
+       map.removeLayer(tempMarker);
 
         addingInterestPlace = false;
     });
