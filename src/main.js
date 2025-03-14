@@ -959,6 +959,20 @@ function showSidebar() {
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.add('visible');
     sidebar.classList.remove('initial');
+
+    const button = document.querySelector('.mobile-toggle')
+    button.classList.toggle('active');
+
+    // Change l'icône et le texte
+    const icon = button.querySelector('i');
+    const span = button.querySelector('span');
+    if (sidebar.classList.contains('visible')) {
+        icon.className = 'fas fa-times';
+        span.textContent = 'Fermer';
+    } else {
+        icon.className = 'fas fa-bars';
+        span.textContent = 'Options';
+    }
 }
 
 function hideSidebar(e) {
@@ -966,6 +980,20 @@ function hideSidebar(e) {
     const sidebarRect = sidebar.getBoundingClientRect();
     if (!e || (e.clientX > sidebarRect.right && !sidebar.classList.contains('initial'))) {
         sidebar.classList.remove('visible');
+    }
+
+    const button = document.querySelector('.mobile-toggle')
+    button.classList.toggle('active');
+
+    // Change l'icône et le texte
+    const icon = button.querySelector('i');
+    const span = button.querySelector('span');
+    if (sidebar.classList.contains('visible')) {
+        icon.className = 'fas fa-times';
+        span.textContent = 'Fermer';
+    } else {
+        icon.className = 'fas fa-bars';
+        span.textContent = 'Options';
     }
 }
 
@@ -1070,6 +1098,27 @@ window.onload = function () {
         //     } // TODO
         fetchItinaries(true);
     });
+
+    // Gestion du bouton mobile
+    const mobileToggle = document.querySelector('.mobile-toggle');
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function () {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('visible');
+            this.classList.toggle('active');
+
+            // Change l'icône et le texte
+            const icon = this.querySelector('i');
+            const span = this.querySelector('span');
+            if (sidebar.classList.contains('visible')) {
+                icon.className = 'fas fa-times';
+                span.textContent = 'Fermer';
+            } else {
+                icon.className = 'fas fa-bars';
+                span.textContent = 'Options';
+            }
+        });
+    }
 
 }
 
