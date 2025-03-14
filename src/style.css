@@ -965,7 +965,7 @@ h3 {
 
 }
 
-@media (max-width: 480px) {
+/* @media (max-width: 480px) {
     .transport-buttons {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
@@ -990,7 +990,7 @@ h3 {
     .time-info {
         font-size: 0.8rem;
     }
-}
+} */
 
 /* Styles pour le menu déroulant des lieux */
 .place-dropdown {
