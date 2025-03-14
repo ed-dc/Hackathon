@@ -344,7 +344,14 @@ function showItinerary(itineraryIdx = 0) {
     // Zoomer sur l'itinéraire
     map.fitBounds(L.polyline([latlngs[0], latlngs[latlngs.length - 1]]).getBounds());
 
-    hideSidebar();
+
+    const transportType = document.querySelector('.transport-btn.active').value;
+    if (transportType === 'TRANSIT') {
+        //Pour que l'on puisse choisir le mode de transport sans que la bar se ferme
+    }else{
+        hideSidebar();
+    }
+
 }
 
 
