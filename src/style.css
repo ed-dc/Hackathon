@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #4A90E2;
+    --primary-color: #80A142;
     --secondary-color: #2C3E50;
     --background-color: #F5F7FA;
     --sidebar-width: 380px;
@@ -162,7 +162,16 @@ h3 {
 .transport-buttons {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    grid-template-areas:
+        "btn1 btn2"
+        "btn3 btn3";
     gap: 1rem;
+}
+
+.transport-buttons> :nth-child(3) {
+    grid-area: btn3;
+    width: 50%;
+    justify-self: center;
 }
 
 .transport-btn {
@@ -282,6 +291,25 @@ h3 {
     border-radius: var(--border-radius);
     padding: 1rem;
     margin-top: 1rem;
+}
+
+#no-itinerary {
+    padding: 2rem;
+    text-align: center;
+    background: #F8F9FA;
+    border-radius: var(--border-radius);
+    color: #6c757d;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    border: 1px dashed #dee2e6;
+}
+
+#no-itinerary p {
+    margin: 0;
+    opacity: 0.8;
 }
 
 .itinerary-card {

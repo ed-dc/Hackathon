@@ -45,8 +45,6 @@ function fetchItinaries(isSearch = false) {
     const startInput = document.querySelector('input#start-point');
     const endInput = document.querySelector('input#end-point');
     const modeSelect = document.querySelector('.transport-btn.active');
-    const avoidHighways = document.querySelector('input#avoid-highways').checked;
-    const preferBikeLanes = document.querySelector('input#prefer-bike-lanes').checked;
     var start;
     var end;
 
@@ -70,17 +68,8 @@ function fetchItinaries(isSearch = false) {
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=${mode}`;
 
 
-    if (avoidHighways) {
-        otpUrl += "&avoid=highways";
-    }
-
-    if (preferBikeLanes) {
-        otpUrl += "&bikePreference=preferBikeLanes";
-    }
-
     const itineraryContainer = document.querySelector('.itinerary-container');
     itineraryContainer.innerHTML = '';
-
     itineraries = [];
 
     fetch(otpUrl)
@@ -179,7 +168,10 @@ function fetchItinaries(isSearch = false) {
 
                 });
             } else {
-                console.error('Aucun itinéraire trouvé.');
+                const noItineraryElement = document.createElement('div');
+                noItineraryElement.id = 'no-itinerary';
+                noItineraryElement.textContent = 'Aucun itinéraire trouvé';
+                itineraryContainer.appendChild(noItineraryElement);
             }
         })
         .catch(error => {
@@ -515,13 +507,15 @@ window.onload = function () {
     document.querySelectorAll('.itinerary-container').forEach((container) => {
         container.addEventListener('click', (ev) => {
             const itineraryCard = ev.target.closest('.itinerary-card');
-            document.querySelectorAll('.itinerary-card').forEach((it) => {
-                it.classList.remove('active');
-            });
-
-            itineraryCard.classList.add('active');
             if (itineraryCard) {
-                showItinerary(itineraryCard.getAttribute('num'));
+                document.querySelectorAll('.itinerary-card').forEach((it) => {
+                    it.classList.remove('active');
+                });
+
+                itineraryCard.classList.add('active');
+                if (itineraryCard) {
+                    showItinerary(itineraryCard.getAttribute('num'));
+                }
             }
         });
     });
