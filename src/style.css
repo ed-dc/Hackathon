@@ -1,5 +1,6 @@
 :root {
     --primary-color: #80A142;
+    --red-color: #f7a5a5;
     --secondary-color: #2C3E50;
     --background-color: #F5F7FA;
     --sidebar-width: 380px;
@@ -384,6 +385,13 @@ h3 {
     color: #2196f3;
 }
 
+.co2-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .co2-info {
     display: flex;
     align-items: center;
@@ -402,6 +410,20 @@ h3 {
     height: auto;
     padding: 0;
     background: none;
+}
+
+.co2-info span {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.co2-info.car {
+    background: var(--red-color);
+    color: white;
+}
+
+.co2-info.car i {
+    color: white;
 }
 
 .itinerary-main-info {
