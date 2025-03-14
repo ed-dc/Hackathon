@@ -66,6 +66,10 @@ function addInterestsPoints() {
         onEachFeature: function (feature, layer) {
             if (feature.properties && feature.properties.name) {
                 let popupContent = `<h3 style="color:rgb(116, 168, 82); font-size: 14px; margin: 0; padding: 5px;">${feature.properties.name}</h3>`;
+                let lat = feature.geometry.coordinates[1];
+                let lng = feature.geometry.coordinates[0];
+                const coordStr = `${lat}, ${lng} `;
+                const name = feature.properties.name;
                 if (feature.properties.description) {
                     popupContent += `<p style="margin: 0; padding: 5px;">${feature.properties.description}</p>`;
                 }
@@ -75,6 +79,71 @@ function addInterestsPoints() {
                 });
                 layer.on('mouseout', function (e) {
                     this.closePopup();
+                });
+                layer.on('click', function (e) {
+                    if (!startCoords) {
+                        // Set starting point
+                        startCoords = name;
+
+                        document.getElementById('start-point').value = name;
+
+                        document.getElementById('start-point').setAttribute('data-coords', coordStr);
+
+                        // Add a marker for the starting point
+                        if (shownMarkers.length > 0) {
+                            shownMarkers.forEach(marker => map.removeLayer(marker));
+                            shownMarkers = [];
+                        }
+
+                        const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
+
+                        shownMarkers.push(startMarker);
+
+                        console.log("Starting point set:", coordStr);
+
+                        if (document.getElementById('end-point').getAttribute('data-coords')) { // si le point d'arrivé est un lieu
+                            fetchItinaries(true);
+                        }
+
+                    }
+                    else if (!endCoords) {
+                        // Set destination
+                        endCoords = name;
+                        document.getElementById('end-point').value = name;
+                        document.getElementById('end-point').setAttribute('data-coords', coordStr);
+
+                        // Add a marker for the end point
+                        const endMarker = L.marker([lat, lng], { icon: endIcon }).addTo(map);
+
+                        shownMarkers.push(endMarker);
+
+                        console.log("Destination set:", coordStr);
+
+                        // Automatically generate the itinerary once both points are set
+
+
+                        if (document.getElementById('start-point').getAttribute('data-coords')) { // si le point de départ est un lieu
+                            fetchItinaries(true);
+                        } else {
+                            fetchItinaries();
+                        }
+                        showSidebar(true);
+
+                    }
+                    else {
+                        // If both points are already set, reset and start over with a new starting point
+                        startCoords = null;
+                        endCoords = null;
+
+
+                        // Clear existing markers and itinerary
+                        if (shownMarkers.length > 0) {
+                            shownMarkers.forEach(marker => map.removeLayer(marker));
+                            shownMarkers = [];
+                        }
+
+                        hideItinerary();
+                    }
                 });
             }
         }
@@ -909,6 +978,20 @@ function showSidebar() {
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.add('visible');
     sidebar.classList.remove('initial');
+
+    const button = document.querySelector('.mobile-toggle')
+    button.classList.toggle('active');
+
+    // Change l'icône et le texte
+    const icon = button.querySelector('i');
+    const span = button.querySelector('span');
+    if (sidebar.classList.contains('visible')) {
+        icon.className = 'fas fa-times';
+        span.textContent = 'Fermer';
+    } else {
+        icon.className = 'fas fa-bars';
+        span.textContent = 'Options';
+    }
 }
 
 function hideSidebar(e) {
@@ -916,6 +999,20 @@ function hideSidebar(e) {
     const sidebarRect = sidebar.getBoundingClientRect();
     if (!e || (e.clientX > sidebarRect.right && !sidebar.classList.contains('initial'))) {
         sidebar.classList.remove('visible');
+    }
+
+    const button = document.querySelector('.mobile-toggle')
+    button.classList.toggle('active');
+
+    // Change l'icône et le texte
+    const icon = button.querySelector('i');
+    const span = button.querySelector('span');
+    if (sidebar.classList.contains('visible')) {
+        icon.className = 'fas fa-times';
+        span.textContent = 'Fermer';
+    } else {
+        icon.className = 'fas fa-bars';
+        span.textContent = 'Options';
     }
 }
 
@@ -1020,6 +1117,27 @@ window.onload = function () {
         //     } // TODO
         fetchItinaries(true);
     });
+
+    // Gestion du bouton mobile
+    const mobileToggle = document.querySelector('.mobile-toggle');
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function () {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('visible');
+            this.classList.toggle('active');
+
+            // Change l'icône et le texte
+            const icon = this.querySelector('i');
+            const span = this.querySelector('span');
+            if (sidebar.classList.contains('visible')) {
+                icon.className = 'fas fa-times';
+                span.textContent = 'Fermer';
+            } else {
+                icon.className = 'fas fa-bars';
+                span.textContent = 'Options';
+            }
+        });
+    }
 
 }
 
