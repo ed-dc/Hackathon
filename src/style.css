@@ -179,9 +179,6 @@ body {
 }
 
 .nav-button:hover {
-#add-interest-places-btn:hover {
-    background-color: #6d8a36;
-    /* Une teinte légèrement plus foncée du vert principal */
     transform: translateY(-2px);
     background-color: #6d8a36; /* Une teinte légèrement plus foncée du vert principal */
 }
