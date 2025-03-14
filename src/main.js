@@ -56,8 +56,19 @@ function fetchItinaries(isSearch = false) {
 
     if (isSearch) {    // le cas ou l'on fait une recherche alors la value dans starting point est un lieu et non des coordonnées
 
-        start = startInput.getAttribute('data-coords');
-        end = endInput.getAttribute('data-coords');
+        if (startInput.getAttribute('data-coords')){
+
+            start = startInput.getAttribute('data-coords');
+        }
+        else{
+            start = startInput.value;
+        }
+        if (endInput.getAttribute('data-coords')){
+            end = endInput.getAttribute('data-coords');
+        }
+        else{
+            end = endInput.value;
+        }
 
     }
     else {
@@ -245,6 +256,11 @@ function setupMapClickListener() {
             shownMarkers.push(startMarker);
 
             console.log("Starting point set:", coordStr);
+
+            if (document.getElementById('end-point').getAttribute('data-coords')){ // si le point d'arrivé est un lieu
+                fetchItinaries(true);
+            }
+
         }
         else if (!endCoords) {
             // Set destination
@@ -259,7 +275,14 @@ function setupMapClickListener() {
             console.log("Destination set:", coordStr);
 
             // Automatically generate the itinerary once both points are set
-            fetchItinaries();
+
+
+            if (document.getElementById('start-point').getAttribute('data-coords')){ // si le point de départ est un lieu
+                fetchItinaries(true);
+            }else{
+                fetchItinaries();
+            }
+
         }
         else {
             // If both points are already set, reset and start over with a new starting point
