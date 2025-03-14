@@ -30,33 +30,6 @@ const endIcon = L.divIcon({
 });
 
 
-class interestPlace {
-    name;
-    coords;
-    category;
-
-    constructor(name, coords, category) {
-        this.name = name;
-        this.coords = coords;
-        this.category = category;
-    }
-
-    get name() {
-        return this.name;
-    }
-
-    get coords() {
-        return this.coords;
-    }
-
-    get category() {
-        return this.category;
-    }
-}
-
-
-
-
 
 // Fonction d'initialisation de la carte
 function initMap() {
@@ -440,12 +413,6 @@ function hideItinerary() {
     document.getElementById('start-point').removeAttribute('data-coords');
     document.getElementById('end-point').removeAttribute('data-coords');
 
-    // // Add a marker for the new starting point
-    // const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
-
-    // shownMarkers.push(startMarker);
-
-    // console.log("Reset: new starting point set:", coordStr);
 
     // Hide previous itinerary
     const itineraryContainer = document.querySelector('.itinerary-container');
@@ -459,40 +426,144 @@ function hideItinerary() {
 
 function fetchInterestPlaces() {
 
-    // hide itineraries
-    hideItinerary();
-    const clickPromise = new Promise(resolve => {
+    const add_place = document.getElementById("add-interest-places-btn");
 
-        const clickHandler = function (e) {
+    let addingInterestPlace = false;
+    let temp_lat = null;
+    let temp_lng = null;
 
+    // Create a container for the form that will appear after click
+    const formContainer = document.createElement('div');
+    formContainer.className = 'interest-place-form';
+    formContainer.style.display = 'none';
+    formContainer.innerHTML = `
+        <div class="form-group">
+            <label for="place-name">Nom:</label>
+            <input type="text" id="place-name" placeholder="Nom du lieu">
+        </div>
+        <div class="form-group">
+            <label for="place-category">Catégorie:</label>
+            <select id="place-category">
+                <option value="restaurant">Restaurant</option>
+                <option value="museum">Musée</option>
+                <option value="park">Parc</option>
+                <option value="shopping">Shopping</option>
+                <option value="activity">Activité</option>
+                <option value="other">Autre</option>
+            </select>
+        </div>
+        <button id="save-place-btn">Sauvegarder</button>
+        <button id="cancel-place-btn">Annuler</button>
+    `;
+
+    const content_com = document.querySelector('.community-content');
+    content_com.appendChild(formContainer);
+
+    // Original map click handler reference
+    const originalMapClickHandler = map._events.click[0].fn;
+
+
+    const addInterestPlaceHandler = function (e) {
+        if (addingInterestPlace) {
             const lat = e.latlng.lat.toFixed(6);
             const lng = e.latlng.lng.toFixed(6);
-            const coords = { lat, lng };
+
+            const tempMarker = L.marker([lat, lng]).addTo(map);
+
+            // Store the coordinates as data attributes on the form
+            temp_lat = lat;
+            temp_lng = lng;
+
+            // Show the form
+            formContainer.style.display = 'block';
+
+            // Update button text
+            add_place.textContent = 'Entrer un nom et une catégorie pour ce lieu';
+        }
+    };
+
+    // Button click handler
+    add_place.addEventListener('click', function () {
+        if (!addingInterestPlace) {
+            hideItinerary();
+
+            if (shownMarkers.length > 0) {
+                shownMarkers.forEach(marker => {
+                    if (marker.icon = startIcon || marker.icon == endIcon) {
+                        map.removeLayer(marker);
+                    }
+                }
+                );
+            }
 
 
-            // Remove the click event listener to prevent multiple clicks
-            map.off('click', clickHandler);
-            map.off('click', mapClickListen);
+            // Enter "add interest place" mode
+            addingInterestPlace = true;
 
-            L.marker([lat, lng]).addTo(map);
-            resolve(coords);
-        };
+            // Change button text to indicate mode
+            add_place.textContent = 'Cliquez sur la carte pour ajouter un lieu';
 
-        // Show instructions to the user
-        alert("Please click on the map to select a location of interest");
-
-        // Add the click event listener to the map
-        map.on('click', clickHandler);
+            // Remove the original click handler and add our special one
+            map.off('click', originalMapClickHandler);
+            map.on('click', addInterestPlaceHandler);
+        }
     });
 
+    // Save button click handler
+    document.getElementById('save-place-btn').addEventListener('click', function () {
+        const placeName = document.getElementById('place-name').value;
+        const placeCategory = document.getElementById('place-category').value;
+
+        if (placeName.trim() === '') {
+            alert('Veuillez entrer un nom pour ce lieu.');
+            return;
+        }
+
+        const interestPlace = {
+            name: placeName,
+            category: placeCategory,
+            lat: temp_lat,
+            lng: temp_lng
+        };
+        interestPlaces.push(interestPlace);
+        console.log('Lieu ajouté:', interestPlace);
 
 
-    const add_place = document.getElementById("add-interest-places-btn");
-    add_place.addEventListener('click', async function () {
+        // Reset the form
+        document.getElementById('place-name').value = '';
+        formContainer.style.display = 'none';
 
-        // Wait for the user to click on the map
-        const selectedCoords = await clickPromise;
-        console.log(selectedCoords);
+        // Reset the button
+        add_place.textContent = 'Ajouter un lieu d\'intérêt';
+
+        // Restore normal map behavior
+        map.off('click', addInterestPlaceHandler);
+        map.on('click', originalMapClickHandler);
+
+        addingInterestPlace = false;
+    });
+
+    // Cancel button click handler
+    document.getElementById('cancel-place-btn').addEventListener('click', function () {
+        // Reset the form
+        document.getElementById('place-name').value = '';
+        formContainer.style.display = 'none';
+
+        // Reset the button
+        add_place.textContent = 'Ajouter un lieu d\'intérêt';
+
+        // Restore normal map behavior
+        map.off('click', addInterestPlaceHandler);
+        map.on('click', originalMapClickHandler);
+
+        // Remove the temporary marker (if any)
+        map.eachLayer(function (layer) {
+            if (layer instanceof L.Marker && !shownMarkers.includes(layer)) {
+                map.removeLayer(layer);
+            }
+        });
+
+        addingInterestPlace = false;
     });
 }
 
@@ -837,6 +908,7 @@ window.onload = function () {
 
 
     setupPlaceSearch();
+    fetchInterestPlaces();
 
     document.querySelectorAll('button.transport-btn').forEach((btn) => {
         btn.addEventListener('click', (ev) => {

@@ -424,6 +424,84 @@ h3 {
     color: white;
 }
 
+.interest-place-form {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    margin-top: 10px;
+    padding: 16px;
+    width: 100%;
+    max-width: 300px;
+    transition: all 0.3s ease;
+  }
+  
+  .interest-place-form .form-group {
+    margin-bottom: 12px;
+  }
+  
+  .interest-place-form label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #333;
+  }
+  
+  .interest-place-form input[type="text"],
+  .interest-place-form select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+  }
+  
+  .interest-place-form input[type="text"]:focus,
+  .interest-place-form select:focus {
+    border-color: #3388ff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 136, 255, 0.2);
+  }
+  
+  .interest-place-form button {
+    background-color: #3388ff;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin-right: 8px;
+    padding: 8px 12px;
+    transition: background-color 0.3s;
+  }
+  
+  .interest-place-form button:hover {
+    background-color: #2979ff;
+  }
+  
+  .interest-place-form button#cancel-place-btn {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+  }
+  
+  .interest-place-form button#cancel-place-btn:hover {
+    background-color: #e5e5e5;
+  }
+  
+  /* Animation pour l'apparition du formulaire */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .interest-place-form {
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+
+
 .checkbox-container {
     display: block;
     position: relative;
