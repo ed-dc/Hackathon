@@ -342,15 +342,26 @@ h3 {
     justify-content: center;
     gap: 1rem;
     margin: 2rem 0;
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .spinner {
     width: 30px;
     height: 30px;
-    border: 3px solid #f3f3f3;
+    border: 3px solid var(--background-color);
     border-top: 3px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+}
+
+.loader p {
+    color: var(--secondary-color);
+    margin: 0;
+    font-size: 0.9rem;
 }
 
 .results {
