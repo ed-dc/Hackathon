@@ -341,7 +341,7 @@ function setupMapClickListener() {
         }
         else {
             // If both points are already set, reset and start over with a new starting point
-            startCoords = coordStr;
+            startCoords = null;
             endCoords = null;
 
 
@@ -357,17 +357,17 @@ function setupMapClickListener() {
             }
 
             // Set new starting point
-            document.getElementById('start-point').value = coordStr;
+            document.getElementById('start-point').value = '';
             document.getElementById('end-point').value = '';
             document.getElementById('start-point').removeAttribute('data-coords');
             document.getElementById('end-point').removeAttribute('data-coords');
 
-            // Add a marker for the new starting point
-            const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
+            // // Add a marker for the new starting point
+            // const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
 
-            shownMarkers.push(startMarker);
+            // shownMarkers.push(startMarker);
 
-            console.log("Reset: new starting point set:", coordStr);
+            // console.log("Reset: new starting point set:", coordStr);
         }
     });
 }
