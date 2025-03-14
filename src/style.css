@@ -916,6 +916,11 @@ h3 {
     max-height: 80vh;
     overflow-y: auto;
     z-index: 999;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.community-sidebar.visible~.map-container .route-tracker {
+    right: calc(var(--sidebar-width) + 80px);
 }
 
 .route-tracker-header {
@@ -999,4 +1004,35 @@ h3 {
 /* Pour cacher le suivi d'itinéraire quand il n'y a pas de route */
 .route-tracker.hidden {
     display: none;
+}
+
+.leaflet-popup-content-wrapper {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 0;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    padding: 1rem;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.leaflet-popup-tip {
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+.leaflet-popup-close-button {
+    color: var(--secondary-color) !important;
+    font-size: 1.2rem !important;
+    padding: 8px 8px 0 0 !important;
+    font-weight: normal !important;
+}
+
+.leaflet-popup-close-button:hover {
+    color: var(--primary-color) !important;
 }
