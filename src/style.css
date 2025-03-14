@@ -25,7 +25,7 @@ body {
 
 .top-nav {
     display: flex;
-    align-items: center;
+    align-items: center;    
     justify-content: space-between;
     background: white;
     padding: 1rem 2rem;
@@ -160,8 +160,7 @@ body {
     margin-top: 0;
 }
 
-/* Style pour le bouton Ajouter un lieu d'intérêt */
-#add-interest-places-btn {
+.nav-button {
     background-color: var(--primary-color);
     color: white;
     border: none;
@@ -179,14 +178,18 @@ body {
     box-shadow: var(--shadow);
 }
 
-#add-interest-places-btn:hover {
-    background-color: #6d8a36; /* Une teinte légèrement plus foncée du vert principal */
+.nav-button:hover {
     transform: translateY(-2px);
+    background-color: #6d8a36; /* Une teinte légèrement plus foncée du vert principal */
 }
 
-#add-interest-places-btn i {
+.nav-button i{
     font-size: 1rem;
 }
+
+
+
+
 
 /* Ajustement supplémentaire pour la section community-content */
 .community-content {
