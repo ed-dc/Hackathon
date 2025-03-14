@@ -9,6 +9,7 @@ var shownMarkers = [];
 let itineraries = [];
 let startCoords = null;
 let endCoords = null;
+let interestPlaces = [];
 
 const startIcon = L.divIcon({
     html: '<i class="fas fa-map-marker fa-2x" style="color:#3388ff;"></i>',
@@ -21,6 +22,35 @@ const endIcon = L.divIcon({
     iconSize: [20, 20],
     className: 'end-icon'
 });
+
+
+class interestPlace {
+    name;
+    coords;
+    category;
+
+    constructor(name, coords, category) {
+        this.name = name;
+        this.coords = coords;
+        this.category = category;
+    }
+
+    get name() {
+        return this.name;
+    }
+
+    get coords() {  
+        return this.coords;
+    }
+
+    get category() {
+        return this.category;
+    }
+}
+
+
+
+
 
 // Fonction d'initialisation de la carte
 function initMap() {
@@ -369,8 +399,80 @@ function showItinerary(itineraryIdx = 0) {
 
 
 
+function hideItinerary() {
+    if (shownItinerary.length > 0) {
+        shownItinerary.forEach(itinerary => map.removeLayer(itinerary));
+        shownItinerary = [];
+    }
+
+    // Set new starting point
+    document.getElementById('start-point').value = '';
+    document.getElementById('end-point').value = '';
+    document.getElementById('start-point').removeAttribute('data-coords');
+    document.getElementById('end-point').removeAttribute('data-coords');
+
+    // // Add a marker for the new starting point
+    // const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
+
+    // shownMarkers.push(startMarker);
+
+    // console.log("Reset: new starting point set:", coordStr);
+
+    // Hide previous itinerary
+    const itineraryContainer = document.querySelector('.itinerary-container');
+    itineraryContainer.innerHTML = '';
+    const tracker = document.querySelector('.route-tracker');
+    tracker.classList.add('hidden');
+    const co2Car = document.querySelector('.co2-info.car');
+    co2Car.classList.add("hidden");
+}
+
+
+function fetchInterestPlaces() {
+
+    // hide itineraries
+    hideItinerary();    
+    const clickPromise = new Promise(resolve => {
+
+        const clickHandler = function(e) {
+
+            const lat = e.latlng.lat.toFixed(6);
+            const lng = e.latlng.lng.toFixed(6);
+            const coords = { lat, lng };
+            
+
+            // Remove the click event listener to prevent multiple clicks
+            map.off('click', clickHandler);
+            map.off('click', mapClickListen);
+
+            L.marker([lat, lng]).addTo(map);
+            resolve(coords);
+        };
+        
+        // Show instructions to the user
+        alert("Please click on the map to select a location of interest");
+        
+        // Add the click event listener to the map
+        map.on('click', clickHandler);
+    });
+    
+    
+
+    const add_place = document.getElementById("add-interest-places-btn");
+    add_place.addEventListener('click', async function() {
+        
+        // Wait for the user to click on the map
+        const selectedCoords = await clickPromise;
+        console.log(selectedCoords);
+    });
+}
+
+
+
+
+
 function setupMapClickListener() {
-    map.on('click', function (e) {
+    map.on('click', function mapClickListen(e) {
         const lat = e.latlng.lat.toFixed(6);
         const lng = e.latlng.lng.toFixed(6);
         const coordStr = `${lat}, ${lng} `;
@@ -436,32 +538,7 @@ function setupMapClickListener() {
                 shownMarkers = [];
             }
 
-            if (shownItinerary.length > 0) {
-                shownItinerary.forEach(itinerary => map.removeLayer(itinerary));
-                shownItinerary = [];
-            }
-
-            // Set new starting point
-            document.getElementById('start-point').value = '';
-            document.getElementById('end-point').value = '';
-            document.getElementById('start-point').removeAttribute('data-coords');
-            document.getElementById('end-point').removeAttribute('data-coords');
-
-            // // Add a marker for the new starting point
-            // const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
-
-            // shownMarkers.push(startMarker);
-
-            // console.log("Reset: new starting point set:", coordStr);
-
-            // Hide previous itinerary
-            const itineraryContainer = document.querySelector('.itinerary-container');
-            itineraryContainer.innerHTML = '';
-            const tracker = document.querySelector('.route-tracker');
-            tracker.classList.add('hidden');
-            const co2Car = document.querySelector('.co2-info.car');
-            co2Car.classList.add("hidden");
-
+            hideItinerary();
         }
     });
 }

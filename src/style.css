@@ -155,14 +155,51 @@ body {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
-.community-content {
-    flex: 1;
-}
 
 .community-content h3 {
     margin-top: 0;
 }
 
+/* Style pour le bouton Ajouter un lieu d'intérêt */
+#add-interest-places-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;    
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+#add-interest-places-btn:hover {
+    background-color: #6d8a36; /* Une teinte légèrement plus foncée du vert principal */
+    transform: translateY(-2px);
+}
+
+#add-interest-places-btn i {
+    font-size: 1rem;
+}
+
+/* Ajustement supplémentaire pour la section community-content */
+.community-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.community-content p {
+    margin-bottom: 1.5rem;
+    color: var(--secondary-color);
+    line-height: 1.5;
+}
 
 .logo {
     display: flex;
