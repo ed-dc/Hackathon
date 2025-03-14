@@ -680,6 +680,7 @@ function searchPlaceDelay(delay) {
 
 
 function showSidebar() {
+    console.log('ok')
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.add('visible');
     sidebar.classList.remove('initial');
@@ -688,7 +689,7 @@ function showSidebar() {
 function hideSidebar(e) {
     const sidebar = document.querySelector('.sidebar');
     const sidebarRect = sidebar.getBoundingClientRect();
-    if (!e || (e.clientX < sidebarRect.left && !sidebar.classList.contains('initial'))) {
+    if (!e || (e.clientX > sidebarRect.right && !sidebar.classList.contains('initial'))) {
         sidebar.classList.remove('visible');
     }
 }
