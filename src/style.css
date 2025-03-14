@@ -162,18 +162,16 @@ h3 {
 
 .transport-buttons {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-areas:
-        "btn1 btn2"
-        "btn3 btn3";
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
 }
 
+/* 
 .transport-buttons> :nth-child(3) {
     grid-area: btn3;
     width: 50%;
     justify-self: center;
-}
+} */
 
 .transport-btn {
     display: flex;
