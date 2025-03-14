@@ -527,7 +527,14 @@ window.onload = function () {
             });
 
             btn.classList.add('active');
-            fetchItinaries();
+            if (document.getElementById('start-point').getAttribute('data-coords') ||
+                document.getElementById('end-point').getAttribute('data-coords')) {
+                fetchItinaries(true);
+            }
+            else{
+                fetchItinaries();
+
+            }
         });
     });
 
