@@ -47,6 +47,7 @@ function fetchItinaries(isSearch = false) {
     const modeSelect = document.querySelector('.transport-btn.active');
     const loader = document.querySelector('.loader');
     const noItinerary = document.querySelector('#no-itinerary');
+    const initialMode = modeSelect.value;
 
     // Cacher le message "aucun itinéraire" et afficher le loader
     if (noItinerary) noItinerary.style.display = 'none';
@@ -97,7 +98,6 @@ function fetchItinaries(isSearch = false) {
         .then(data => {
             // Cacher le loader une fois les données reçues
             if (loader) loader.style.display = 'none';
-
             if (data.plan && data.plan.itineraries && data.plan.itineraries.length > 0) {
                 data.plan.itineraries.forEach((itinerary, index) => {
                     let transportType = '';
@@ -122,6 +122,7 @@ function fetchItinaries(isSearch = false) {
                             transportIcon = 'car';
                             break;
                     }
+
 
                     if (itinerary.legs.length == 1 && itinerary.legs[0].mode == 'WALK') {
                         // Itiniraire a pied quand transport en commun
@@ -218,7 +219,7 @@ function fetchItinaries(isSearch = false) {
                             itineraryDetails.appendChild(routeSteps);
                             itineraryElement.children[0].appendChild(itineraryDetails);
                         }
-                        if (document.querySelector('.transport-btn.active').value === mode) {
+                        if (document.querySelector('.transport-btn.active').value === initialMode) {
                             itineraryContainer.appendChild(itineraryElement);
                             itineraries.push(itinerary);
                             if (index == 0) {
@@ -335,7 +336,6 @@ function showItinerary(itineraryIdx = 0) {
         } else if (leg.mode === 'BUS') {
             co2Emission += 113 * km;
         } else if (leg.mode === 'TRAM') {
-            console.log(leg.distance);
             co2Emission += 4.28 * km;
         }
     });
@@ -701,20 +701,15 @@ function searchPlaceDelay(delay) {
 
 
 
-function showSidebar(persist = false) {
+function showSidebar() {
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.add('visible');
     sidebar.classList.remove('initial');
-
-    // if (persist) {
-    //     sidebar.classList.add('initial');
-    // }
 }
 
 function hideSidebar(e) {
     const sidebar = document.querySelector('.sidebar');
     const sidebarRect = sidebar.getBoundingClientRect();
-    console.log(sidebar.classList)
     if (!e || (e.clientX > sidebarRect.right && !sidebar.classList.contains('initial'))) {
         sidebar.classList.remove('visible');
     }
