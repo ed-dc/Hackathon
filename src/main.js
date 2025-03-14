@@ -136,7 +136,6 @@ function fetchItinaries(isSearch = false) {
         .then(response => response.json())
         .then(data => {
             // Cacher le loader une fois les données reçues
-            if (loader) loader.style.display = 'none';
             if (data.plan && data.plan.itineraries && data.plan.itineraries.length > 0) {
                 data.plan.itineraries.forEach((itinerary, index) => {
                     let transportType = '';
@@ -162,7 +161,7 @@ function fetchItinaries(isSearch = false) {
                             break;
                     }
 
-                    if (new Date(itinerary.startTime).getTime() < now.getTime()) {
+                    if (initialMode === 'TRANSIT' && new Date(itinerary.startTime).getTime() < now.getTime()) {
                         return;
                     }
 
@@ -227,14 +226,6 @@ function fetchItinaries(isSearch = false) {
                             `;
                     co2Container.appendChild(co2Info);
 
-                    // const carInfo = document.createElement('div');
-                    // carInfo.classList.add('co2-info');
-                    // carInfo.classList.add('car');
-                    // carInfo.innerHTML = `
-                    //             <i class="fas fa-car"></i>
-                    //             <span>0 g</span>
-                    //         `;
-                    // co2Container.appendChild(carInfo);
 
                     fetchCarConsumption(start, end).then((carCo2Emission) => {
                         const carInfo = document.querySelector('.co2-info.car');
@@ -253,6 +244,7 @@ function fetchItinaries(isSearch = false) {
                     });
 
                 });
+                if (loader) loader.style.display = 'none';
             } else {
                 if (noItinerary) noItinerary.style.display = 'flex';
                 const noItineraryElement = document.createElement('div');
@@ -866,6 +858,8 @@ window.onload = function () {
     });
 
     // Gestion de l'heure
+    const journeyTime = document.querySelector('input#journey-time');
+    journeyTime.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     document.querySelectorAll('.time-btn').forEach((btn) => {
         btn.addEventListener('click', (ev) => {
             document.querySelectorAll('.time-btn').forEach((btn) => {
@@ -877,6 +871,7 @@ window.onload = function () {
             const departTime = document.querySelector('#depart-time');
             if (btn.getAttribute('data-type') === 'now') {
                 departTime.classList.add('hidden');
+                journeyTime.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             }
             else {
                 departTime.classList.remove('hidden');
@@ -891,14 +886,12 @@ window.onload = function () {
 
     );
 
-    const journeyTime = document.querySelector('input#journey-time');
     journeyTime.addEventListener('change', (ev) => {
         // if (document.getElementById('start-point').getAttribute('data-coords') ||
         //     document.getElementById('end-point').getAttribute('data-coords')) {
         //     } // TODO
         fetchItinaries(true);
     });
-    journeyTime.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 }
 
