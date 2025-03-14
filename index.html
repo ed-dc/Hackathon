@@ -32,7 +32,7 @@
 
         <div class="content-wrapper">
 
-            <div class="sidebar">
+            <div class="sidebar initial">
                 <div class="search-container">
                     <div class="input-group">
                         <i class="fas fa-location-dot"></i>
@@ -103,6 +103,35 @@
 
             <div class="map-container">
                 <div id="map"></div>
+                <div id="route-tracker" class="route-tracker hidden">
+                    <div class="route-tracker-header">
+                        <i class="fas fa-route"></i>
+                        <span>Suivi d'itinéraire</span>
+                    </div>
+                    <div class="route-timeline">
+                        <div class="timeline-step">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-time">08:30</div>
+                                <div class="timeline-location">Campus universitaire</div>
+                            </div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-time">08:45 - Tram B</div>
+                                <div class="timeline-location">Direction Gières</div>
+                            </div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-time">09:00</div>
+                                <div class="timeline-location">Bibliothèque universitaire</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="sidebar-trigger">
                 <div class="sidebar-trigger-icon"></div>
