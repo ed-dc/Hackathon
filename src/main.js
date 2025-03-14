@@ -111,11 +111,15 @@ function fetchItinaries(isSearch = false) {
                             break;
                     }
 
-                    if (data.plan.itineraries.length > 1 && itinerary.legs.length == 1 && itinerary.legs[0].mode == 'WALK') {
+                    if (itinerary.legs.length == 1 && itinerary.legs[0].mode == 'WALK') {
                         // Itiniraire a pied quand transport en commun
                         transportType = 'Marche';
                         transportIcon = 'walking';
                         mode = "WALK";
+                        if (data.plan.itineraries.length > 1) {
+                            // Il y a bien des itinéraires de transport en commun
+                            return;
+                        }
                     }
 
                     const itineraryElement = document.createElement('div');
