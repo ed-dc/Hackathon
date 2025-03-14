@@ -208,10 +208,12 @@ function fetchItinaries(isSearch = false) {
                             itineraryDetails.appendChild(routeSteps);
                             itineraryElement.children[0].appendChild(itineraryDetails);
                         }
-                        itineraryContainer.appendChild(itineraryElement);
-                        itineraries.push(itinerary);
-                        if (index == 0) {
-                            showItinerary(0);
+                        if (document.querySelector('.transport-btn.active').value === mode) {
+                            itineraryContainer.appendChild(itineraryElement);
+                            itineraries.push(itinerary);
+                            if (index == 0) {
+                                showItinerary(0);
+                            }
                         }
                     });
 
@@ -432,6 +434,13 @@ function setupMapClickListener() {
             // shownMarkers.push(startMarker);
 
             // console.log("Reset: new starting point set:", coordStr);
+
+            // Hide previous itinerary
+            const itineraryContainer = document.querySelector('.itinerary-container');
+            itineraryContainer.innerHTML = '';
+            const tracker = document.querySelector('.route-tracker');
+            tracker.classList.add('hidden');
+
         }
     });
 }
