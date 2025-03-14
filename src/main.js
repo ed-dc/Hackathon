@@ -122,24 +122,45 @@ function fetchItinaries(isSearch = false) {
 
                     itineraryElement.innerHTML = `
                         <div class="itinerary-header ${mode.toLowerCase()}">
-                            <i class="fas fa-${transportIcon}"></i>
-                                <div class="itinerary-main-info">
-                                    <div class="transport-type">${transportType}</div>
+                                <i class="fas fa-${transportIcon}"></i>
+                                <!--<div class="transport-type">${transportType}</div>-->
+                                <div class="transport-info">
                                     <div class="time-info">
                                         <span>${Math.round(itinerary.duration / 60)} min</span>
                                         <span>•</span>
                                         <span>${startTime} - ${endTime}</span>
                                     </div>
                                 </div>
-                                <!--<div class="itinerary-details">
-                                    <div class="route-steps">
-                                        <div class="step"><i class="fas fa-walking"></i> 5 min marche</div>
-                                        <div class="step"><i class="fas fa-bus"></i> Ligne C1 • 30 min</div>
-                                        <div class="step"><i class="fas fa-walking"></i> 10 min marche</div>
-                                    </div>
-                                </div> -->
+                                <!--</div>-->
                             </div>
                         `;
+
+                    // Ajouter l'empreinte carbone
+                    let co2Emission = 0;
+                    itinerary.legs.forEach(leg => {
+                        let km = leg.distance / 1000;
+                        if (leg.mode === 'WALK') {
+                            co2Emission += 0;
+                        } else if (leg.mode === 'BICYCLE') {
+                            co2Emission += 0;
+                        } else if (leg.mode === 'CAR') {
+                            co2Emission += 218 * km;
+                        } else if (leg.mode === 'BUS') {
+                            console.log(leg.distance);
+                            co2Emission += 113 * km;
+                        } else if (leg.mode === 'TRAM') {
+                            co2Emission += 4.28 * km;
+                        }
+                    });
+
+                    const co2Info = document.createElement('div');
+                    co2Info.classList.add('co2-info');
+                    co2Info.innerHTML = `
+                                <i class="fas fa-leaf"></i>
+                                <span>${Math.round(co2Emission * 100) / 100} g</span>
+                            `;
+                    itineraryElement.children[0].appendChild(co2Info);
+
                     if (mode == "TRANSIT") {
                         const itineraryDetails = document.createElement('div');
                         itineraryDetails.classList.add('itinerary-details');
