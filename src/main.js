@@ -54,8 +54,19 @@ function fetchItinaries(isSearch = false) {
 
     if (isSearch) {    // le cas ou l'on fait une recherche alors la value dans starting point est un lieu et non des coordonnées
 
-        start = startInput.getAttribute('data-coords');
-        end = endInput.getAttribute('data-coords');
+        if (startInput.getAttribute('data-coords')){
+
+            start = startInput.getAttribute('data-coords');
+        }
+        else{
+            start = startInput.value;
+        }
+        if (endInput.getAttribute('data-coords')){
+            end = endInput.getAttribute('data-coords');
+        }
+        else{
+            end = endInput.value;
+        }
 
     }
     else {
@@ -262,6 +273,11 @@ function setupMapClickListener() {
             shownMarkers.push(startMarker);
 
             console.log("Starting point set:", coordStr);
+
+            if (document.getElementById('end-point').getAttribute('data-coords')){ // si le point d'arrivé est un lieu
+                fetchItinaries(true);
+            }   
+
         }
         else if (!endCoords) {
             // Set destination
@@ -276,7 +292,14 @@ function setupMapClickListener() {
             console.log("Destination set:", coordStr);
 
             // Automatically generate the itinerary once both points are set
-            fetchItinaries();
+
+
+            if (document.getElementById('start-point').getAttribute('data-coords')){ // si le point de départ est un lieu
+                fetchItinaries(true);
+            }else{
+                fetchItinaries();
+            }
+
         }
         else {
             // If both points are already set, reset and start over with a new starting point
@@ -312,18 +335,25 @@ function setupMapClickListener() {
 // search : la chaîne de recherche
 // bool_start : booléen pour déterminer s'il s'agit du point de départ ou d'arrivée
 
-function searchPlace(search, bool_start = true) {
+function searchPlace(search, bool_start = true, isDirect = false) {
+
+    if (search.length < 3 && isDirect) {
+        removeDropdown();
+        return;
+    }
     const searchQuery = `${search}, Grenoble, France`;
     const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`;
 
-    // Supprimer tout menu déroulant existant
-    const existingDropdowns = document.querySelectorAll('.place-dropdown');
-    existingDropdowns.forEach(dropdown => dropdown.remove());
+    removeDropdown();
 
     fetch(searchUrl)
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
+
+                if (isDirect){
+                    removeDropdown();
+                }
                 // Créer le menu déroulant avec les options de lieux
                 createPlaceDropdown(data, bool_start);
             } else {
@@ -463,10 +493,19 @@ function showNoResultsMessage(inputElement) {
 
 
 function setupPlaceSearch() {
+
     const startInput = document.getElementById('start-point');
     const endInput = document.getElementById('end-point');
 
+    const delayedSearch = searchPlaceDelay(300);
+
     if (startInput) {
+
+        startInput.addEventListener('input', function () {
+            const query = this.value;
+            delayedSearch(query, true, true);
+        });
+
         startInput.addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -478,6 +517,13 @@ function setupPlaceSearch() {
     }
 
     if (endInput) {
+
+        endInput.addEventListener('input', function () {
+            const query = this.value;
+            delayedSearch(query, false, true);
+        });
+
+
         endInput.addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -488,6 +534,15 @@ function setupPlaceSearch() {
         });
     }
 }
+
+
+
+
+function removeDropdown() {
+    const existingDropdowns = document.querySelectorAll('.place-dropdown');
+    existingDropdowns.forEach(dropdown => dropdown.remove());
+}
+
 
 
 // L'API Nominatim renvoie souvent des noms très longs avec beaucoup de détails
@@ -507,6 +562,18 @@ function extractShortPlaceName(displayName) {
 }
 
 
+function searchPlaceDelay(delay){
+    let timer;
+    return function (search, bool_start = true, isDirect = false) {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            searchPlace(search, bool_start, isDirect);
+        }, delay);
+    }
+}
+
+
+
 window.onload = function () {
     // Function that runs when DOM is loaded
     initMap();
@@ -521,7 +588,14 @@ window.onload = function () {
             });
 
             btn.classList.add('active');
-            fetchItinaries();
+            if (document.getElementById('start-point').getAttribute('data-coords') ||
+                document.getElementById('end-point').getAttribute('data-coords')) {
+                fetchItinaries(true);
+            }
+            else{
+                fetchItinaries();
+
+            }
         });
     });
 
@@ -559,3 +633,13 @@ window.onload = function () {
     trigger.addEventListener('mouseenter', showSidebar);
     sidebar.addEventListener('mouseleave', hideSidebar);
 }
+
+window.addEventListener('beforeunload', function(event) {
+    const startInput = document.querySelector('input#start-point');
+    const endInput = document.querySelector('input#end-point');
+    startInput.value = '';
+    endInput.value = '';
+    startCoords = null;
+    endCoords = null;
+    
+  });
