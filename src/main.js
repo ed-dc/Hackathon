@@ -259,7 +259,7 @@ function setupMapClickListener() {
 
             if (document.getElementById('end-point').getAttribute('data-coords')){ // si le point d'arrivé est un lieu
                 fetchItinaries(true);
-            }
+            }   
 
         }
         else if (!endCoords) {
@@ -563,3 +563,13 @@ window.onload = function () {
     trigger.addEventListener('mouseenter', showSidebar);
     sidebar.addEventListener('mouseleave', hideSidebar);
 }
+
+window.addEventListener('beforeunload', function(event) {
+    const startInput = document.querySelector('input#start-point');
+    const endInput = document.querySelector('input#end-point');
+    startInput.value = '';
+    endInput.value = '';
+    startCoords = null;
+    endCoords = null;
+    
+  });
