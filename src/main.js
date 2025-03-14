@@ -45,6 +45,13 @@ function fetchItinaries(isSearch = false) {
     const startInput = document.querySelector('input#start-point');
     const endInput = document.querySelector('input#end-point');
     const modeSelect = document.querySelector('.transport-btn.active');
+    const loader = document.querySelector('.loader');
+    const noItinerary = document.querySelector('#no-itinerary');
+
+    // Cacher le message "aucun itinéraire" et afficher le loader
+    if (noItinerary) noItinerary.style.display = 'none';
+    if (loader) loader.style.display = 'flex';
+
     var start;
     var end;
 
@@ -88,6 +95,9 @@ function fetchItinaries(isSearch = false) {
     fetch(otpUrl)
         .then(response => response.json())
         .then(data => {
+            // Cacher le loader une fois les données reçues
+            if (loader) loader.style.display = 'none';
+
             if (data.plan && data.plan.itineraries && data.plan.itineraries.length > 0) {
                 data.plan.itineraries.forEach((itinerary, index) => {
                     let transportType = '';
@@ -208,15 +218,18 @@ function fetchItinaries(isSearch = false) {
                             itineraryDetails.appendChild(routeSteps);
                             itineraryElement.children[0].appendChild(itineraryDetails);
                         }
-                        itineraryContainer.appendChild(itineraryElement);
-                        itineraries.push(itinerary);
-                        if (index == 0) {
-                            showItinerary(0);
+                        if (document.querySelector('.transport-btn.active').value === mode) {
+                            itineraryContainer.appendChild(itineraryElement);
+                            itineraries.push(itinerary);
+                            if (index == 0) {
+                                showItinerary(0);
+                            }
                         }
                     });
 
                 });
             } else {
+                if (noItinerary) noItinerary.style.display = 'flex';
                 const noItineraryElement = document.createElement('div');
                 noItineraryElement.id = 'no-itinerary';
                 noItineraryElement.textContent = 'Aucun itinéraire trouvé';
@@ -224,6 +237,8 @@ function fetchItinaries(isSearch = false) {
             }
         })
         .catch(error => {
+            if (loader) loader.style.display = 'none';
+            if (noItinerary) noItinerary.style.display = 'flex';
             console.error('Erreur lors de la récupération des données de l\'itinéraire:', error);
         });
 }
@@ -409,6 +424,7 @@ function setupMapClickListener() {
             } else {
                 fetchItinaries();
             }
+            showSidebar(true);
 
         }
         else {
@@ -440,6 +456,13 @@ function setupMapClickListener() {
             // shownMarkers.push(startMarker);
 
             // console.log("Reset: new starting point set:", coordStr);
+
+            // Hide previous itinerary
+            const itineraryContainer = document.querySelector('.itinerary-container');
+            itineraryContainer.innerHTML = '';
+            const tracker = document.querySelector('.route-tracker');
+            tracker.classList.add('hidden');
+
         }
     });
 }
@@ -687,16 +710,20 @@ function searchPlaceDelay(delay) {
 
 
 
-function showSidebar() {
-    console.log('ok')
+function showSidebar(persist = false) {
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.add('visible');
     sidebar.classList.remove('initial');
+
+    // if (persist) {
+    //     sidebar.classList.add('initial');
+    // }
 }
 
 function hideSidebar(e) {
     const sidebar = document.querySelector('.sidebar');
     const sidebarRect = sidebar.getBoundingClientRect();
+    console.log(sidebar.classList)
     if (!e || (e.clientX > sidebarRect.right && !sidebar.classList.contains('initial'))) {
         sidebar.classList.remove('visible');
     }
