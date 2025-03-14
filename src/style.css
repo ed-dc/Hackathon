@@ -863,19 +863,24 @@ h3 {
 
     .content-wrapper {
         flex-direction: column;
+        height: calc(100vh - var(--top-nav-height));
+        overflow: hidden;
     }
 
     .sidebar {
+        position: fixed;
         margin-top: var(--top-nav-height);
         width: auto;
-        height: 70vh;
+        height: 60vh;
+        max-height: fit-content;
+        overflow-y: auto;
         left: 0;
         top: 100%;
         transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .sidebar.visible {
-        top: 0%;
+        top: 0;
         left: 0;
     }
 
@@ -892,8 +897,14 @@ h3 {
         right: 0;
     }
 
-    .itinerary-container {
+    .results {
+        flex: 1;
+        min-height: 200px;
         height: auto;
+    }
+
+    .itinerary-container {
+        height: 100px;
         max-height: 50vh;
         padding-right: 1rem;
         overflow-y: auto;
@@ -966,7 +977,10 @@ h3 {
     }
 
     #map {
-        height: calc(100vh - var(--top-nav-height));
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        height: 100vh;
     }
 
 
