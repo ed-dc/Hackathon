@@ -359,14 +359,6 @@ function showItinerary(itineraryIdx = 0) {
     // Zoomer sur l'itinéraire
     map.fitBounds(L.polyline([latlngs[0], latlngs[latlngs.length - 1]]).getBounds());
 
-
-    const transportType = document.querySelector('.transport-btn.active').value;
-    if (transportType === 'TRANSIT') {
-        //Pour que l'on puisse choisir le mode de transport sans que la bar se ferme
-    }else{
-        hideSidebar();
-    }
-
 }
 
 
@@ -423,6 +415,7 @@ function setupMapClickListener() {
             } else {
                 fetchItinaries();
             }
+            showSidebar(true);
 
         }
         else {
@@ -708,16 +701,20 @@ function searchPlaceDelay(delay) {
 
 
 
-function showSidebar() {
-    console.log('ok')
+function showSidebar(persist = false) {
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.add('visible');
     sidebar.classList.remove('initial');
+
+    // if (persist) {
+    //     sidebar.classList.add('initial');
+    // }
 }
 
 function hideSidebar(e) {
     const sidebar = document.querySelector('.sidebar');
     const sidebarRect = sidebar.getBoundingClientRect();
+    console.log(sidebar.classList)
     if (!e || (e.clientX > sidebarRect.right && !sidebar.classList.contains('initial'))) {
         sidebar.classList.remove('visible');
     }
