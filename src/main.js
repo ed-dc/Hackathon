@@ -147,7 +147,6 @@ function fetchItinaries(isSearch = false) {
                     itineraryElement.innerHTML = `
                         <div class="itinerary-header ${mode.toLowerCase()}">
                                 <i class="fas fa-${transportIcon}"></i>
-                                <!--<div class="transport-type">${transportType}</div>-->
                                 <div class="transport-info">
                                     <div class="time-info">
                                         <span>${Math.round(itinerary.duration / 60)} min</span>
@@ -185,40 +184,22 @@ function fetchItinaries(isSearch = false) {
                             `;
                     co2Container.appendChild(co2Info);
 
-                    const carInfo = document.createElement('div');
-                    carInfo.classList.add('co2-info');
-                    carInfo.classList.add('car');
-                    carInfo.innerHTML = `
-                                <i class="fas fa-car"></i>
-                                <span>0 g</span>
-                            `;
-                    co2Container.appendChild(carInfo);
+                    // const carInfo = document.createElement('div');
+                    // carInfo.classList.add('co2-info');
+                    // carInfo.classList.add('car');
+                    // carInfo.innerHTML = `
+                    //             <i class="fas fa-car"></i>
+                    //             <span>0 g</span>
+                    //         `;
+                    // co2Container.appendChild(carInfo);
 
-                    fetchCarConsumption(carInfo, start, end).then(() => {
+                    fetchCarConsumption(start, end).then((carCo2Emission) => {
+                        const carInfo = document.querySelector('.co2-info.car');
+                        carInfo.classList.remove('hidden');
+                        carInfo.querySelector('span').textContent = `${Math.round(carCo2Emission * 100) / 100} g`;
+
                         itineraryElement.children[0].appendChild(co2Container);
 
-                        if (mode == "TRANSIT") {
-                            const itineraryDetails = document.createElement('div');
-                            itineraryDetails.classList.add('itinerary-details');
-                            const routeSteps = document.createElement('div');
-                            routeSteps.classList.add('route-steps');
-
-                            itinerary.legs.forEach(leg => {
-                                const legIcon = leg.mode === 'WALK' ? 'walking' : (leg.mode === 'BUS' ? 'bus' : 'tram');
-                                const legLength = leg.distance.toFixed(0);
-                                const legTime = Math.round(leg.duration / 60);
-
-                                routeSteps.innerHTML += `
-                                    <div class="step">
-                                        <i class="fas fa-${legIcon}"></i>
-                                        <!--${leg.mode === 'WALK' ? "marche" : (leg.mode === 'BUS' ? 'Bus' : 'Tram')}-->
-                                        ${leg.route ? `${leg.mode === 'BUS' ? 'Bus' : 'Tram'} ${leg.routeShortName} • ` : ''}
-                                        ${leg.duration > 0 ? `${legTime} min` : ''}
-                                    </div>`
-                            });
-                            itineraryDetails.appendChild(routeSteps);
-                            itineraryElement.children[0].appendChild(itineraryDetails);
-                        }
                         if (document.querySelector('.transport-btn.active').value === initialMode) {
                             itineraryContainer.appendChild(itineraryElement);
                             itineraries.push(itinerary);
@@ -244,21 +225,22 @@ function fetchItinaries(isSearch = false) {
         });
 }
 
-async function fetchCarConsumption(co2Element, start, end) {
 
+async function fetchCarConsumption(start, end) {
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=CAR`;
 
     const response = await fetch(otpUrl);
     const data = await response.json();
+    let carCo2Emission = 0;
     if (data.plan && data.plan.itineraries && data.plan.itineraries.length > 0) {
         const itinerary = data.plan.itineraries[0];
-        let carCo2Emission = 0;
         itinerary.legs.forEach(leg => {
             let km = leg.distance / 1000;
             carCo2Emission += 218 * km;
         });
-        co2Element.querySelector('span').textContent = `${Math.round(carCo2Emission * 100) / 100} g`;
     }
+
+    return carCo2Emission;
 }
 
 function showItinerary(itineraryIdx = 0) {
@@ -452,6 +434,8 @@ function setupMapClickListener() {
             itineraryContainer.innerHTML = '';
             const tracker = document.querySelector('.route-tracker');
             tracker.classList.add('hidden');
+            const co2Car = document.querySelector('.co2-info.car');
+            co2Car.classList.add("hidden");
 
         }
     });

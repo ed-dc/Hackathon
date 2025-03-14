@@ -48,8 +48,10 @@ body {
     position: absolute;
     top: 0;
     left: 50%;
-    transform: translateX(-50%); /* Centré horizontalement */
-    margin-top: 0.6rem;  /* Ajuster la distance par rapport au logo */
+    transform: translateX(-50%);
+    /* Centré horizontalement */
+    margin-top: 0.6rem;
+    /* Ajuster la distance par rapport au logo */
 }
 
 /* Positionner le bouton "Communauté" à droite du logo */
@@ -57,8 +59,10 @@ body {
     position: absolute;
     top: 0;
     right: 0;
-    margin-top: 1rem;  /* Ajuster la distance */
-    margin-right: 2rem;  /* Ajuster la distance par rapport au bord droit */
+    margin-top: 1rem;
+    /* Ajuster la distance */
+    margin-right: 2rem;
+    /* Ajuster la distance par rapport au bord droit */
 }
 
 /* Style du bouton "Communauté" */
@@ -72,7 +76,7 @@ body {
     border-radius: var(--border-radius);
     display: flex;
     align-items: center;
-    gap: 0.5rem;    
+    gap: 0.5rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
@@ -91,7 +95,7 @@ body {
 #commu-button span {
     font-weight: bold;
 }
-    
+
 /* Sidebar communauté */
 .community-sidebar {
     width: var(--sidebar-width);
@@ -435,6 +439,11 @@ h3 {
     max-height: calc(100% - 200px);
 }
 
+.results-header {
+    display: flex;
+    align-items: center;
+}
+
 .itinerary-container {
     flex: 1;
     overflow-y: auto;
@@ -488,6 +497,9 @@ h3 {
 
 .itinerary-header {
     display: grid;
+    grid-template-areas:
+        "icon info"
+        "co2  co2";
     grid-template-columns: auto 1fr;
     gap: 0.8rem;
     padding: 1rem;
@@ -495,6 +507,7 @@ h3 {
 }
 
 .itinerary-header i {
+    grid-area: icon;
     font-size: 1.25rem;
     width: 40px;
     height: 40px;
@@ -526,8 +539,8 @@ h3 {
 }
 
 .co2-container {
+    grid-area: co2;
     display: flex;
-    flex-direction: column;
     align-items: center;
     gap: 0.5rem;
 }
@@ -558,12 +571,17 @@ h3 {
 }
 
 .co2-info.car {
+    margin-left: auto;
     background: var(--red-color);
     color: white;
 }
 
 .co2-info.car i {
     color: white;
+}
+
+.co2-info.hidden {
+    display: none;
 }
 
 .itinerary-main-info {
@@ -578,6 +596,7 @@ h3 {
 }
 
 .time-info {
+    grid-area: info;
     display: flex;
     align-items: center;
     gap: 0.5rem;
