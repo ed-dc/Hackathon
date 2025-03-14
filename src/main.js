@@ -16,6 +16,12 @@ const startIcon = L.divIcon({
     className: 'start-icon'
 });
 
+const interestIcon = L.divIcon({
+    html: '<i class="fas fa-map-pin" style="color:#74A852; font-size: 1rem;"></i>',
+    iconSize: [12, 12],
+    className: 'interest-icon'
+});
+
 const endIcon = L.divIcon({
     html: '<i class="fas fa-flag fa-2x" style="color:#3388ff;"></i>',
     iconSize: [20, 20],
@@ -39,6 +45,31 @@ function initMap() {
         minZoom: 13
     }).addTo(map);
     setupMapClickListener();
+    addInterestsPoints();
+}
+
+function addInterestsPoints() {
+    L.geoJSON(interests, {
+        pointToLayer: function (feature, latlng) {
+            if (!feature.properties.name) {
+                return;
+            }
+            return L.marker(latlng, {
+                icon: interestIcon,
+                opacity: 0.5,
+            });
+
+        },
+        onEachFeature: function (feature, layer) {
+            if (feature.properties && feature.properties.name) {
+                let popupContent = `<h3 style="color:rgb(116, 168, 82); font-size: 14px; margin: 0; padding: 5px;">${feature.properties.name}</h3>`;
+                if (feature.properties.description) {
+                    popupContent += `<p style="margin: 0; padding: 5px;">${feature.properties.description}</p>`;
+                }
+                layer.bindPopup(popupContent);
+            }
+        }
+    }).addTo(map);
 }
 
 function fetchItinaries(isSearch = false) {
