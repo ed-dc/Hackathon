@@ -157,7 +157,6 @@ function fetchItinaries(isSearch = false) {
                         } else if (leg.mode === 'BICYCLE') {
                             co2Emission += 0;
                         } else if (leg.mode === 'BUS') {
-                            console.log(leg.distance);
                             co2Emission += 113 * km;
                         } else if (leg.mode === 'TRAM') {
                             co2Emission += 4.28 * km;
@@ -211,7 +210,9 @@ function fetchItinaries(isSearch = false) {
                         }
                         itineraryContainer.appendChild(itineraryElement);
                         itineraries.push(itinerary);
-                        showItinerary(0);
+                        if (index == 0) {
+                            showItinerary(0);
+                        }
                     });
 
                 });
@@ -263,6 +264,12 @@ function showItinerary(itineraryIdx = 0) {
     const routeTimeline = document.querySelector('.route-timeline');
     routeTimeline.innerHTML = '';
 
+    const routeTrackerHeader = document.querySelector('.route-tracker-header');
+    routeTrackerHeader.querySelectorAll('.co2-container').forEach((co2Container) => {
+        co2Container.remove();
+    });
+    let co2Emission = 0;
+
     legs.forEach(leg => {
         const polyline = L.Polyline.fromEncoded(leg.legGeometry.points);
         shownItinerary.push(polyline);
@@ -279,6 +286,9 @@ function showItinerary(itineraryIdx = 0) {
         }).addTo(map);
 
         // Suivi d'itinéraire
+        const legIcon = leg.mode === 'WALK' ? 'walking' : (leg.mode === 'BUS' ? 'bus' : (leg.mode === 'BICYCLE' ? 'bicycle' : 'tram'));
+        const legTime = Math.round(leg.duration / 60);
+
         const timelineStep = document.createElement('div');
         timelineStep.classList.add('timeline-step');
         timelineStep.innerHTML = `
@@ -292,11 +302,40 @@ function showItinerary(itineraryIdx = 0) {
                     <i class="fas fa-arrow-right"></i>
                     ${leg.to.name === 'Destination' ? 'Arrivée' : leg.to.name}
                 </div>
-                <div class="timeline-type">Tram</div
-            </div>
-        `;
+                <div class="timeline-type">
+                <i class="fas fa-${legIcon}"></i>
+                <!--${leg.mode === 'WALK' ? "marche" : (leg.mode === 'BUS' ? 'Bus' : 'Tram')}-->
+                ${leg.route ? `${leg.mode === 'BUS' ? 'Bus' : 'Tram'} ${leg.routeShortName} • ` : ''}
+                ${leg.duration > 0 ? `${legTime} min` : ''}
+                </div>
+                </div>
+                `;
         routeTimeline.appendChild(timelineStep);
+        // Ajouter l'empreinte carbone
+        let km = leg.distance / 1000;
+        if (leg.mode === 'WALK') {
+            co2Emission += 0;
+        } else if (leg.mode === 'BICYCLE') {
+            co2Emission += 0;
+        } else if (leg.mode === 'BUS') {
+            co2Emission += 113 * km;
+        } else if (leg.mode === 'TRAM') {
+            console.log(leg.distance);
+            co2Emission += 4.28 * km;
+        }
     });
+
+    const co2Container = document.createElement('div');
+    co2Container.classList.add('co2-container');
+
+    const co2Info = document.createElement('div');
+    co2Info.classList.add('co2-info');
+    co2Info.innerHTML = `
+                <i class="fas fa-leaf"></i>
+                <span>${Math.round(co2Emission * 100) / 100} g</span>
+            `;
+    co2Container.appendChild(co2Info);
+    routeTrackerHeader.appendChild(co2Container);
 
     // Ajouter des marqueurs au point de départ et d'arrivée
     shownMarkers.push(L.marker(latlngs[0], { icon: startIcon }).addTo(map));
@@ -691,7 +730,7 @@ window.onload = function () {
 
                 itineraryCard.classList.add('active');
                 if (itineraryCard) {
-                    showItinerary(itineraryCard.getAttribute('num'));
+                    showItinerary(itineraryCard.getAttribute('num') - 1);
                 }
             }
         });

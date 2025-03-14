@@ -599,7 +599,24 @@ h3 {
     border-radius: var(--border-radius) var(--border-radius) 0 0;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
+}
+
+.route-tracker-header .co2-container {
+    margin-left: auto;
+}
+
+.route-tracker-header .co2-info {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+.route-tracker-header .co2-info i {
+    color: white;
 }
 
 .route-timeline {
