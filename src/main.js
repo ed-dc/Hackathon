@@ -47,6 +47,8 @@ function fetchItinaries(isSearch = false) {
     const modeSelect = document.querySelector('.transport-btn.active');
     const loader = document.querySelector('.loader');
     const noItinerary = document.querySelector('#no-itinerary');
+    const departTime = document.querySelector('#journey-time').value;
+    const timeType = document.querySelector('.time-btn.active').getAttribute('data-type');
     const initialMode = modeSelect.value;
 
     // Cacher le message "aucun itinéraire" et afficher le loader
@@ -87,6 +89,13 @@ function fetchItinaries(isSearch = false) {
 
     var mode = modeSelect.value.toUpperCase();
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=${mode}`;
+
+    const now = new Date();
+    const formattedDate = now.toISOString().split('T')[0]; // Format YYYY-MM-DD
+    console.log(formattedDate);
+    if (timeType !== 'now') {
+        otpUrl += `&time=${departTime}&date=${formattedDate}&arriveBy=${timeType === 'arrive'}`;
+    }
 
 
     const itineraryContainer = document.querySelector('.itinerary-container');
@@ -762,6 +771,40 @@ window.onload = function () {
         communitySidebar.classList.remove('visible');
         showSidebar();
     });
+
+    // Gestion de l'heure
+    document.querySelectorAll('.time-btn').forEach((btn) => {
+        btn.addEventListener('click', (ev) => {
+            document.querySelectorAll('.time-btn').forEach((btn) => {
+                btn.classList.remove('active');
+            });
+
+            btn.classList.add('active');
+
+            const departTime = document.querySelector('#depart-time');
+            if (btn.getAttribute('data-type') === 'now') {
+                departTime.classList.add('hidden');
+            }
+            else {
+                departTime.classList.remove('hidden');
+            }
+
+            // if (document.getElementById('start-point').getAttribute('data-coords') ||
+            //     document.getElementById('end-point').getAttribute('data-coords')) {
+            // } // TODO
+            fetchItinaries(true);
+        });
+    }
+
+    );
+
+    document.querySelector('input#journey-time').addEventListener('change', (ev) => {
+        // if (document.getElementById('start-point').getAttribute('data-coords') ||
+        //     document.getElementById('end-point').getAttribute('data-coords')) {
+        //     } // TODO
+        fetchItinaries(true);
+    });
+
 }
 
 window.addEventListener('beforeunload', function (event) {

@@ -249,8 +249,8 @@ body {
 }
 
 .search-container {
-    /* margin-bottom: 2rem; */
     width: 100%;
+    margin-bottom: 0.5rem;
 }
 
 .input-group {
@@ -288,16 +288,64 @@ body {
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
+.time-selector {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.time-type {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.time-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid #E0E0E0;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.time-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.time-input input[type="time"] {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border: 1px solid #E0E0E0;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#depart-time.hidden {
+    display: none;
+}
+
 h3 {
     font-size: 1.1rem;
     margin-bottom: 1rem;
     color: var(--secondary-color);
 }
 
+.transport-options h3 {
+    margin: 0.5rem 0;
+}
+
 .transport-buttons {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 /* 
@@ -312,7 +360,7 @@ h3 {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    padding: 1rem;
+    padding: 0.8rem;
     border: 1px solid #E0E0E0;
     border-radius: var(--border-radius);
     background: white;
@@ -321,8 +369,12 @@ h3 {
 }
 
 .transport-btn i {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     color: #666;
+}
+
+.transport-btn span {
+    font-size: 0.8rem;
 }
 
 .transport-btn.active {
@@ -410,7 +462,7 @@ h3 {
     margin: 2rem 0;
     width: 100%;
     position: absolute;
-    top: 50%;
+    top: 60%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
@@ -436,7 +488,7 @@ h3 {
     flex-direction: column;
     overflow: hidden;
     margin-bottom: 1rem;
-    max-height: calc(100% - 200px);
+    max-height: calc(100% - 250px);
 }
 
 .results-header {
@@ -450,7 +502,7 @@ h3 {
     background: #F8F9FA;
     border-radius: var(--border-radius);
     padding: 1rem;
-    margin-top: 1rem;
+    /* margin-top: 1rem; */
     height: 100%;
     max-height: 100%;
 }
