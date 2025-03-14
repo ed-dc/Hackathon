@@ -45,8 +45,6 @@ function fetchItinaries(isSearch = false) {
     const startInput = document.querySelector('input#start-point');
     const endInput = document.querySelector('input#end-point');
     const modeSelect = document.querySelector('.transport-btn.active');
-    const avoidHighways = document.querySelector('input#avoid-highways').checked;
-    const preferBikeLanes = document.querySelector('input#prefer-bike-lanes').checked;
     var start;
     var end;
 
@@ -83,17 +81,8 @@ function fetchItinaries(isSearch = false) {
     var otpUrl = `${planUrl}?fromPlace=${start}&toPlace=${end}&mode=${mode}`;
 
 
-    if (avoidHighways) {
-        otpUrl += "&avoid=highways";
-    }
-
-    if (preferBikeLanes) {
-        otpUrl += "&bikePreference=preferBikeLanes";
-    }
-
     const itineraryContainer = document.querySelector('.itinerary-container');
     itineraryContainer.innerHTML = '';
-
     itineraries = [];
 
     fetch(otpUrl)
@@ -124,11 +113,15 @@ function fetchItinaries(isSearch = false) {
                             break;
                     }
 
-                    if (data.plan.itineraries.length > 1 && itinerary.legs.length == 1 && itinerary.legs[0].mode == 'WALK') {
+                    if (itinerary.legs.length == 1 && itinerary.legs[0].mode == 'WALK') {
                         // Itiniraire a pied quand transport en commun
                         transportType = 'Marche';
                         transportIcon = 'walking';
                         mode = "WALK";
+                        if (data.plan.itineraries.length > 1) {
+                            // Il y a bien des itinéraires de transport en commun
+                            return;
+                        }
                     }
 
                     const itineraryElement = document.createElement('div');
@@ -142,24 +135,45 @@ function fetchItinaries(isSearch = false) {
 
                     itineraryElement.innerHTML = `
                         <div class="itinerary-header ${mode.toLowerCase()}">
-                            <i class="fas fa-${transportIcon}"></i>
-                                <div class="itinerary-main-info">
-                                    <div class="transport-type">${transportType}</div>
+                                <i class="fas fa-${transportIcon}"></i>
+                                <!--<div class="transport-type">${transportType}</div>-->
+                                <div class="transport-info">
                                     <div class="time-info">
                                         <span>${Math.round(itinerary.duration / 60)} min</span>
                                         <span>•</span>
                                         <span>${startTime} - ${endTime}</span>
                                     </div>
                                 </div>
-                                <!--<div class="itinerary-details">
-                                    <div class="route-steps">
-                                        <div class="step"><i class="fas fa-walking"></i> 5 min marche</div>
-                                        <div class="step"><i class="fas fa-bus"></i> Ligne C1 • 30 min</div>
-                                        <div class="step"><i class="fas fa-walking"></i> 10 min marche</div>
-                                    </div>
-                                </div> -->
+                                <!--</div>-->
                             </div>
                         `;
+
+                    // Ajouter l'empreinte carbone
+                    let co2Emission = 0;
+                    itinerary.legs.forEach(leg => {
+                        let km = leg.distance / 1000;
+                        if (leg.mode === 'WALK') {
+                            co2Emission += 0;
+                        } else if (leg.mode === 'BICYCLE') {
+                            co2Emission += 0;
+                        } else if (leg.mode === 'CAR') {
+                            co2Emission += 218 * km;
+                        } else if (leg.mode === 'BUS') {
+                            console.log(leg.distance);
+                            co2Emission += 113 * km;
+                        } else if (leg.mode === 'TRAM') {
+                            co2Emission += 4.28 * km;
+                        }
+                    });
+
+                    const co2Info = document.createElement('div');
+                    co2Info.classList.add('co2-info');
+                    co2Info.innerHTML = `
+                                <i class="fas fa-leaf"></i>
+                                <span>${Math.round(co2Emission * 100) / 100} g</span>
+                            `;
+                    itineraryElement.children[0].appendChild(co2Info);
+
                     if (mode == "TRANSIT") {
                         const itineraryDetails = document.createElement('div');
                         itineraryDetails.classList.add('itinerary-details');
@@ -188,7 +202,10 @@ function fetchItinaries(isSearch = false) {
 
                 });
             } else {
-                console.error('Aucun itinéraire trouvé.');
+                const noItineraryElement = document.createElement('div');
+                noItineraryElement.id = 'no-itinerary';
+                noItineraryElement.textContent = 'Aucun itinéraire trouvé';
+                itineraryContainer.appendChild(noItineraryElement);
             }
         })
         .catch(error => {
@@ -593,13 +610,15 @@ window.onload = function () {
     document.querySelectorAll('.itinerary-container').forEach((container) => {
         container.addEventListener('click', (ev) => {
             const itineraryCard = ev.target.closest('.itinerary-card');
-            document.querySelectorAll('.itinerary-card').forEach((it) => {
-                it.classList.remove('active');
-            });
-
-            itineraryCard.classList.add('active');
             if (itineraryCard) {
-                showItinerary(itineraryCard.getAttribute('num'));
+                document.querySelectorAll('.itinerary-card').forEach((it) => {
+                    it.classList.remove('active');
+                });
+
+                itineraryCard.classList.add('active');
+                if (itineraryCard) {
+                    showItinerary(itineraryCard.getAttribute('num'));
+                }
             }
         });
     });

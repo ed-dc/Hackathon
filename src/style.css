@@ -1,10 +1,11 @@
 :root {
-    --primary-color: #4A90E2;
+    --primary-color: #80A142;
     --secondary-color: #2C3E50;
     --background-color: #F5F7FA;
     --sidebar-width: 380px;
     --border-radius: 12px;
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --top-nav-height: 64px;
 }
 
 body {
@@ -58,6 +59,10 @@ body {
     height: 100vh;
     transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
+    height: calc(100vh - var(--top-nav-height));
+    top: var(--top-nav-height);
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar.visible {
@@ -110,7 +115,7 @@ body {
 }
 
 .search-container {
-    margin-bottom: 2rem;
+    /* margin-bottom: 2rem; */
     width: 100%;
 }
 
@@ -149,10 +154,6 @@ body {
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
-.transport-options {
-    margin-bottom: 2rem;
-}
-
 h3 {
     font-size: 1.1rem;
     margin-bottom: 1rem;
@@ -161,9 +162,16 @@ h3 {
 
 .transport-buttons {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
 }
+
+/* 
+.transport-buttons> :nth-child(3) {
+    grid-area: btn3;
+    width: 50%;
+    justify-self: center;
+} */
 
 .transport-btn {
     display: flex;
@@ -277,11 +285,44 @@ h3 {
     animation: spin 1s linear infinite;
 }
 
+.results {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    max-height: calc(100% - 200px);
+}
+
 .itinerary-container {
+    flex: 1;
+    overflow-y: auto;
     background: #F8F9FA;
     border-radius: var(--border-radius);
     padding: 1rem;
     margin-top: 1rem;
+    height: 100%;
+    max-height: 100%;
+}
+
+
+#no-itinerary {
+    padding: 2rem;
+    text-align: center;
+    background: #F8F9FA;
+    border-radius: var(--border-radius);
+    color: #6c757d;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    border: 1px dashed #dee2e6;
+}
+
+#no-itinerary p {
+    margin: 0;
+    opacity: 0.8;
 }
 
 .itinerary-card {
@@ -289,7 +330,9 @@ h3 {
     border-radius: var(--border-radius);
     margin-bottom: 1rem;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.2s ease;
+    border: 1px solid #E0E0E0;
+    overflow: hidden;
 }
 
 .itinerary-card:hover {
@@ -298,30 +341,32 @@ h3 {
 }
 
 .itinerary-card.active {
-    background: #F8F9FA;
-    border-left: 4px solid var(--primary-color);
+    border-color: var(--primary-color);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transform: scale(1.02);
 }
 
 .itinerary-header {
-    padding: 1.2rem;
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 1rem;
-    align-items: start;
+    gap: 0.8rem;
+    padding: 1rem;
+    align-items: center;
 }
 
 .itinerary-header i {
-    font-size: 1.5rem;
-    padding: 0.8rem;
+    font-size: 1.25rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 50%;
-    margin-right: 1rem;
+    margin: 0;
 }
 
 .itinerary-header.transit i {
-    background: rgba(156, 39, 176, 0.1);
-    color: #9c27b0;
+    background: rgba(128, 161, 66, 0.1);
+    color: var(--primary-color);
 }
 
 .itinerary-header.car i {
@@ -332,6 +377,31 @@ h3 {
 .itinerary-header.walk i {
     background: rgba(76, 175, 80, 0.1);
     color: #4caf50;
+}
+
+.itinerary-header.bicycle i {
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196f3;
+}
+
+.co2-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: rgba(128, 161, 66, 0.1);
+    width: fit-content;
+}
+
+.co2-info i {
+    font-size: 0.9rem;
+    width: auto;
+    height: auto;
+    padding: 0;
+    background: none;
 }
 
 .itinerary-main-info {
@@ -346,87 +416,96 @@ h3 {
 }
 
 .time-info {
-    color: #666;
-    font-size: 0.9rem;
     display: flex;
-    gap: 0.5rem;
     align-items: center;
+    gap: 0.5rem;
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+.time-info span {
+    font-size: 0.95rem;
 }
 
 .itinerary-details {
-    grid-column: 2;
-    margin-top: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1rem 1rem 0rem;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 0;
+    align-items: flex-start;
 }
 
 .route-steps {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .step {
-    font-size: 0.9rem;
-    color: #666;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: #666;
 }
 
 .step i {
     font-size: 1rem;
-    padding: 0;
+    color: var(--secondary-color);
+    opacity: 0.7;
+}
 
-    .reset-route {
-        display: block;
-        margin-bottom: 1rem;
+.reset-route {
+    display: block;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.reset-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem;
+    width: 100%;
+    border: 1px solid #E0E0E0;
+    border-radius: var(--border-radius);
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    color: #666;
+}
+
+.reset-button:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.reset-button i {
+    font-size: 1.2rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .sidebar {
         width: 100%;
-    }
-
-    .reset-button {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.8rem;
-        width: 100%;
-        border: 1px solid #E0E0E0;
-        border-radius: var(--border-radius);
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 1rem;
-        color: #666;
-    }
-
-    .reset-button:hover {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-    }
-
-    .reset-button i {
-        font-size: 1.2rem;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .content-wrapper {
-            flex-direction: column;
-        }
-
-        .sidebar {
-            width: 100%;
-            height: 50%;
-        }
+        height: 50%;
     }
 }
 
