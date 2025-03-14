@@ -578,3 +578,82 @@ h3 {
     text-align: center;
     font-style: italic;
 }
+
+.route-tracker {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    width: 300px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 999;
+}
+
+.route-tracker-header {
+    padding: 1rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.route-timeline {
+    padding: 1rem;
+}
+
+.timeline-step {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    position: relative;
+}
+
+.timeline-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 25px;
+    bottom: 0;
+    width: 2px;
+    background: #E0E0E0;
+}
+
+.timeline-marker {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    position: relative;
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-time {
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.timeline-type {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+}
+
+.timeline-location {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+}
+
+/* Pour cacher le suivi d'itinéraire quand il n'y a pas de route */
+.route-tracker.hidden {
+    display: none;
+}

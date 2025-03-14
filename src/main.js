@@ -26,7 +26,7 @@ const endIcon = L.divIcon({
 function initMap() {
     // Créer l'objet "macarte" et l'insèrer dans l'élément HTML qui a l'ID "map"
     map = L.map('map', {
-        zoomControl: true,
+        zoomControl: false,
         maxZoom: 20,
         minZoom: 13
     }).setView([lat, lon], 11);
@@ -257,6 +257,12 @@ function showItinerary(itineraryIdx = 0) {
     var legs = itinerary.legs;
     let latlngs = [];
 
+    const routeTracker = document.querySelector('.route-tracker');
+    routeTracker.classList.remove('hidden');
+
+    const routeTimeline = document.querySelector('.route-timeline');
+    routeTimeline.innerHTML = '';
+
     legs.forEach(leg => {
         const polyline = L.Polyline.fromEncoded(leg.legGeometry.points);
         shownItinerary.push(polyline);
@@ -271,6 +277,25 @@ function showItinerary(itineraryIdx = 0) {
             smoothFactor: 1,
             color: color,
         }).addTo(map);
+
+        // Suivi d'itinéraire
+        const timelineStep = document.createElement('div');
+        timelineStep.classList.add('timeline-step');
+        timelineStep.innerHTML = `
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+                <div class="timeline-time">
+                    ${new Date(leg.startTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div class="timeline-location">
+                    ${leg.from.name === 'Origin' ? 'Départ' : leg.from.name}
+                    <i class="fas fa-arrow-right"></i>
+                    ${leg.to.name === 'Destination' ? 'Arrivée' : leg.to.name}
+                </div>
+                <div class="timeline-type">Tram</div
+            </div>
+        `;
+        routeTimeline.appendChild(timelineStep);
     });
 
     // Ajouter des marqueurs au point de départ et d'arrivée
