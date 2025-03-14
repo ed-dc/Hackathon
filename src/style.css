@@ -92,6 +92,73 @@ body {
     font-weight: bold;
 }
     
+/* Sidebar communauté */
+.community-sidebar {
+    width: var(--sidebar-width);
+    background: white;
+    padding: 1.5rem;
+    padding-top: 1rem;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+    position: fixed;
+    right: -100%;
+    height: calc(100vh - var(--top-nav-height));
+    top: var(--top-nav-height);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.community-sidebar.visible {
+    right: 0;
+}
+
+.community-sidebar-header {
+    display: flex;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #E0E0E0;
+    margin-bottom: 1rem;
+}
+
+.community-sidebar-header i {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+
+.community-sidebar-header span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    flex: 1;
+}
+
+#close-community-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+#close-community-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.community-content {
+    flex: 1;
+}
+
+.community-content h3 {
+    margin-top: 0;
+}
+
 
 .logo {
     display: flex;

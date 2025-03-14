@@ -348,6 +348,7 @@ function showItinerary(itineraryIdx = 0) {
     const transportType = document.querySelector('.transport-btn.active').value;
     if (transportType === 'TRANSIT') {
         //Pour que l'on puisse choisir le mode de transport sans que la bar se ferme
+        showSidebar();
     }else{
         hideSidebar();
     }
@@ -750,6 +751,21 @@ window.onload = function () {
     trigger.addEventListener('mouseenter', showSidebar);
     sidebar.addEventListener('mouseleave', hideSidebar);
     showSidebar();
+
+    // Gestion de la sidebar communauté
+    const communityBtn = document.getElementById('commu-button');
+    const communitySidebar = document.querySelector('.community-sidebar');
+    const closeCommunityBtn = document.getElementById('close-community-btn');
+
+    communityBtn.addEventListener('click', function() {
+        communitySidebar.classList.add('visible');
+        hideSidebar();
+    });
+
+    closeCommunityBtn.addEventListener('click', function() {
+        communitySidebar.classList.remove('visible');
+        showSidebar();
+    });
 }
 
 window.addEventListener('beforeunload', function (event) {
