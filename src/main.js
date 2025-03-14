@@ -54,6 +54,8 @@ function fetchItinaries(isSearch = false) {
         return;
     }
 
+    console.log('Fetching itineraries... with  search value : ', isSearch);
+
     if (isSearch) {    // le cas ou l'on fait une recherche alors la value dans starting point est un lieu et non des coordonnées
 
         if (startInput.getAttribute('data-coords')){
@@ -245,6 +247,8 @@ function setupMapClickListener() {
 
             document.getElementById('start-point').value = coordStr;
 
+            document.getElementById('start-point').removeAttribute('data-coords');
+
             // Add a marker for the starting point
             if (shownMarkers.length > 0) {
                 shownMarkers.forEach(marker => map.removeLayer(marker));
@@ -266,6 +270,7 @@ function setupMapClickListener() {
             // Set destination
             endCoords = coordStr;
             document.getElementById('end-point').value = coordStr;
+            document.getElementById('end-point').removeAttribute('data-coords');
 
             // Add a marker for the end point
             const endMarker = L.marker([lat, lng], { icon: endIcon }).addTo(map);
@@ -289,6 +294,7 @@ function setupMapClickListener() {
             startCoords = coordStr;
             endCoords = null;
 
+
             // Clear existing markers and itinerary
             if (shownMarkers.length > 0) {
                 shownMarkers.forEach(marker => map.removeLayer(marker));
@@ -303,6 +309,8 @@ function setupMapClickListener() {
             // Set new starting point
             document.getElementById('start-point').value = coordStr;
             document.getElementById('end-point').value = '';
+            document.getElementById('start-point').removeAttribute('data-coords');
+            document.getElementById('end-point').removeAttribute('data-coords');
 
             // Add a marker for the new starting point
             const startMarker = L.marker([lat, lng], { icon: startIcon }).addTo(map);
@@ -391,7 +399,7 @@ function createPlaceDropdown(places, bool_start) {
             addPlaceMarker(place.lat, place.lon, bool_start);
 
             // Si les deux points sont définis, générer l'itinéraire
-            if (document.getElementById('start-point').getAttribute('data-coords') &&
+            if (document.getElementById('start-point').getAttribute('data-coords') ||
                 document.getElementById('end-point').getAttribute('data-coords')) {
                 fetchItinaries(true);
             }
