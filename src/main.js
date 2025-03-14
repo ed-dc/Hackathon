@@ -318,18 +318,25 @@ function setupMapClickListener() {
 // search : la chaîne de recherche
 // bool_start : booléen pour déterminer s'il s'agit du point de départ ou d'arrivée
 
-function searchPlace(search, bool_start = true) {
+function searchPlace(search, bool_start = true, isDirect = false) {
+
+    if (search.length < 3 && isDirect) {
+        removeDropdown();
+        return;
+    }
     const searchQuery = `${search}, Grenoble, France`;
     const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`;
 
-    // Supprimer tout menu déroulant existant
-    const existingDropdowns = document.querySelectorAll('.place-dropdown');
-    existingDropdowns.forEach(dropdown => dropdown.remove());
+    removeDropdown();
 
     fetch(searchUrl)
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
+
+                if (isDirect){
+                    removeDropdown();
+                }
                 // Créer le menu déroulant avec les options de lieux
                 createPlaceDropdown(data, bool_start);
             } else {
@@ -469,10 +476,19 @@ function showNoResultsMessage(inputElement) {
 
 
 function setupPlaceSearch() {
+
     const startInput = document.getElementById('start-point');
     const endInput = document.getElementById('end-point');
 
+    const delayedSearch = searchPlaceDelay(300);
+
     if (startInput) {
+
+        startInput.addEventListener('input', function () {
+            const query = this.value;
+            delayedSearch(query, true, true);
+        });
+
         startInput.addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -484,6 +500,13 @@ function setupPlaceSearch() {
     }
 
     if (endInput) {
+
+        endInput.addEventListener('input', function () {
+            const query = this.value;
+            delayedSearch(query, false, true);
+        });
+
+
         endInput.addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -494,6 +517,15 @@ function setupPlaceSearch() {
         });
     }
 }
+
+
+
+
+function removeDropdown() {
+    const existingDropdowns = document.querySelectorAll('.place-dropdown');
+    existingDropdowns.forEach(dropdown => dropdown.remove());
+}
+
 
 
 // L'API Nominatim renvoie souvent des noms très longs avec beaucoup de détails
@@ -511,6 +543,18 @@ function extractShortPlaceName(displayName) {
 
     return `${word_0}, ${word_1}`;
 }
+
+
+function searchPlaceDelay(delay){
+    let timer;
+    return function (search, bool_start = true, isDirect = false) {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            searchPlace(search, bool_start, isDirect);
+        }, delay);
+    }
+}
+
 
 
 window.onload = function () {
