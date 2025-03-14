@@ -43,6 +43,61 @@ body {
     color: var(--primary-color);
 }
 
+.nav-actions {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    /* Vertically center the button */
+    margin-right: 1rem;
+}
+
+/* Customize the nav-button for the community button */
+#commu-button {
+    background-color: white;
+    color: var(--primary-color);
+    /* Use green color */
+    border: 1px solid var(--primary-color);
+    /* Green border */
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+/* Hover effect for the community button */
+#commu-button:hover {
+    background-color: var(--primary-color);
+    /* Green background */
+    color: white;
+    /* White text */
+}
+
+#commu-button i {
+    font-size: 1rem;
+}
+
+/* For the icon inside the button */
+#commu-button span {
+    font-weight: bold;
+}
+
+/* For a secondary style button */
+.nav-button.secondary {
+    background: white;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.nav-button.secondary:hover {
+    background: #f5f7fa;
+}
+
 .logo {
     display: flex;
     align-items: center;
