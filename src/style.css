@@ -197,6 +197,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .community-content p {
@@ -433,6 +434,9 @@ h3 {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     margin-top: 10px;
+    margin-bottom: 40px;
+    margin-left: auto;
+    margin-right: auto;
     padding: 16px;
     width: 100%;
     max-width: 300px;
@@ -452,7 +456,7 @@ h3 {
 
 .interest-place-form input[type="text"],
 .interest-place-form select {
-    width: 100%;
+    width: fit-content;
     padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
