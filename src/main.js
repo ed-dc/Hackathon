@@ -37,8 +37,8 @@ let interestPlaces = [
     {
         name: "Parc Paul Mistral",
         category: "other",
-        lat: 45.185289, 
-        lng: 5.736387 
+        lat: 45.185289,
+        lng: 5.736387
     },
     {
         name: "Le 5",
@@ -49,133 +49,133 @@ let interestPlaces = [
     {
         name: "Musée Dauphinois",
         category: "museum",
-        lat: 45.19521020890247, 
+        lat: 45.19521020890247,
         lng: 5.726579754894914
     },
     {
         name: "Galeries Lafayette",
         category: "shopping",
         lat: 45.19067481647549,
-        lng:  5.726839268389635
+        lng: 5.726839268389635
     },
     {
         name: "Téléphérique de Grenoble",
         category: "activity",
-        lat: 45.19314759176473, 
+        lat: 45.19314759176473,
         lng: 5.726047753049538
     },
     {
         name: "La Belle Électrique",
         category: "activity",
-        lat: 45.18746694182053, 
-        lng:5.704195397224524
+        lat: 45.18746694182053,
+        lng: 5.704195397224524
     },
     {
         name: "Muséum de Grenoble",
         category: "museum",
         lat: 45.19532111980316,
-        lng:  5.732162693534311
+        lng: 5.732162693534311
     },
     {
         name: "Le Jardin de Ville",
         category: "other",
-        lat: 45.19233909444988, 
+        lat: 45.19233909444988,
         lng: 5.726875126059759
     },
     {
         name: "La ferme à Dédé",
         category: "restaurant",
-        lat: 45.1930601443852, 
+        lat: 45.1930601443852,
         lng: 5.729873590068935
     },
     {
         name: "Fnac Grenoble",
         category: "shopping",
         lat: 45.19057217795545,
-        lng:  5.726274739554589
+        lng: 5.726274739554589
     },
     {
         name: "Parc Jardin des Plantes",
         category: "other",
-        lat: 45.18749889466797, 
-        lng:5.735635683729657
+        lat: 45.18749889466797,
+        lng: 5.735635683729657
     },
     {
         name: "Café de la Table Ronde",
         category: "restaurant",
-        lat: 45.19294916209595, 
+        lat: 45.19294916209595,
         lng: 5.728379126059802
     },
     {
         name: "Palais de Justice",
         category: "other",
         lat: 45.19129822065948,
-        lng:  5.711579527904958
+        lng: 5.711579527904958
     },
     {
         name: "Hôtel de Ville de Grenoble",
         category: "other",
         lat: 45.18681570439888,
-        lng:  5.736264224214195
+        lng: 5.736264224214195
     },
     {
         name: "Cathédrale Notre-Dame",
         category: "other",
-        lat: 45.1928433883839, 
+        lat: 45.1928433883839,
         lng: 5.7317903665444625
     },
     {
         name: "Caserne de Bonne",
         category: "shopping",
         lat: 45.18405454249616,
-        lng:  5.723146295379088
+        lng: 5.723146295379088
     },
     {
         name: "Musée Archéologique",
         category: "museum",
-        lat: 45.19776661508094, 
-        lng:5.7315676260600235
+        lat: 45.19776661508094,
+        lng: 5.7315676260600235
     },
     {
         name: "Marché Saint-Bruno",
         category: "shopping",
         lat: 45.18749726488956,
-        lng:  5.714158826059536
+        lng: 5.714158826059536
     },
     {
         name: "Patinoire Polesud",
         category: "activity",
-        lat: 45.15793841906218, 
+        lat: 45.15793841906218,
         lng: 5.734269289842071
     },
     {
         name: "Cinéma Pathé Chavant",
         category: "activity",
-        lat: 45.18570814551838, 
+        lat: 45.18570814551838,
         lng: 5.731412310719343
     },
     {
         name: "Bibliothèque d'Étude et du Patrimoine",
         category: "other",
-        lat: 45.185520640803766, 
+        lat: 45.185520640803766,
         lng: 5.731071887420085
     },
     {
         name: "Parc de l'Île d'Amour",
         category: "other",
-        lat: 45.200516488430424, 
+        lat: 45.200516488430424,
         lng: 5.767857081884928
     },
     {
         name: "Parc Bachelard",
         category: "other",
-        lat: 45.164523510034805, 
+        lat: 45.164523510034805,
         lng: 5.705949993532956
     },
     {
         name: "MC2 - Maison de la Culture",
         category: "activity",
-        lat: 45.17227201581915, 
+        lat: 45.17227201581915,
         lng: 5.733343668388805
     },
 
@@ -914,6 +914,74 @@ function fetchInterestPlaces() {
         finalMarker.on('mouseout', function (e) {
             this.closePopup();
         });
+        const coordStr = `${temp_lat}, ${temp_lng} `;
+        finalMarker.on('click', function (e) {
+            if (!startCoords) {
+                // Set starting point
+                startCoords = placeName;
+
+                document.getElementById('start-point').value = placeName;
+
+                document.getElementById('start-point').setAttribute('data-coords', coordStr);
+
+                // Add a marker for the starting point
+                if (shownMarkers.length > 0) {
+                    shownMarkers.forEach(marker => map.removeLayer(marker));
+                    shownMarkers = [];
+                }
+
+                const startMarker = L.marker([temp_lat, temp_lng], { icon: startIcon }).addTo(map);
+
+                shownMarkers.push(startMarker);
+
+                console.log("Starting point set:", coordStr);
+
+                if (document.getElementById('end-point').getAttribute('data-coords')) { // si le point d'arrivé est un lieu
+                    fetchItinaries(true);
+                }
+
+            }
+            else if (!endCoords) {
+                // Set destination
+                endCoords = placeName;
+                document.getElementById('end-point').value = placeName;
+                document.getElementById('end-point').setAttribute('data-coords', coordStr);
+
+                // Add a marker for the end point
+                const endMarker = L.marker([temp_lat, temp_lng], { icon: endIcon }).addTo(map);
+
+                shownMarkers.push(endMarker);
+
+                console.log("Destination set:", coordStr);
+
+                // Automatically generate the itinerary once both points are set
+
+
+                if (document.getElementById('start-point').getAttribute('data-coords')) { // si le point de départ est un lieu
+                    fetchItinaries(true);
+                } else {
+                    fetchItinaries();
+                }
+                showSidebar(true);
+
+            }
+            else {
+                // If both points are already set, reset and start over with a new starting point
+                startCoords = null;
+                endCoords = null;
+
+
+                // Clear existing markers and itinerary
+                if (shownMarkers.length > 0) {
+                    shownMarkers.forEach(marker => map.removeLayer(marker));
+                    shownMarkers = [];
+                }
+
+                hideItinerary();
+            }
+        });
+
+
     });
 
 
