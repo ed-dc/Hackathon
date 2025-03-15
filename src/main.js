@@ -491,6 +491,12 @@ function hideItinerary() {
     tracker.classList.add('hidden');
     const co2Car = document.querySelector('.co2-info.car');
     co2Car.classList.add("hidden");
+
+    // No itinerary
+    const noItinerary = document.createElement('div');
+    noItinerary.id = 'no-itinerary';
+    noItinerary.textContent = 'Aucun itinéraire trouvé';
+    itineraryContainer.appendChild(noItinerary);
 }
 
 
@@ -558,7 +564,7 @@ function fetchInterestPlaces() {
     add_place.addEventListener('click', function () {
         if (!addingInterestPlace) {
             hideItinerary();
-            
+
             reinitCommunityMarkers();
 
             if (shownMarkers.length > 0) {
@@ -587,13 +593,13 @@ function fetchInterestPlaces() {
     document.getElementById('save-place-btn').addEventListener('click', function () {
         const placeName = document.getElementById('place-name').value;
         const placeCategory = document.getElementById('place-category').value;
-        
+
 
         if (placeName.trim() === '') {
             alert('Veuillez entrer un nom pour ce lieu.');
             return;
         }
-    
+
         const interestPlace = {
             name: placeName,
             category: placeCategory,
@@ -602,37 +608,37 @@ function fetchInterestPlaces() {
         };
         interestPlaces.push(interestPlace);
         console.log('Lieu ajouté:', interestPlace);
-    
+
         // Reset the form
         document.getElementById('place-name').value = '';
         formContainer.style.display = 'none';
-    
+
         // Reset the button
         add_place.textContent = 'Ajouter un lieu d\'intérêt';
-    
+
         // Restore normal map behavior
         map.off('click', addInterestPlaceHandler);
         map.on('click', originalMapClickHandler);
-    
+
         addingInterestPlace = false;
-    
+
         map.removeLayer(tempMarker);
-    
+
         // Créer le marqueur final
         const finalMarker = L.marker([temp_lat, temp_lng], {
             icon: interestIcon,
             opacity: 0.5
         }).addTo(map);
-    
+
         // Stocker le marqueur par catégorie
         if (!interestMarkers[placeCategory]) {
             interestMarkers[placeCategory] = [];
         }
         interestMarkers[placeCategory].push(finalMarker);
-    
+
         let popupContent = `<h3 style="color:rgb(116, 168, 82); font-size: 14px; margin: 0; padding: 5px;">${placeName}</h3>`;
         popupContent += `<p style="margin: 0; padding: 5px;">${placeCategory}</p>`;
-    
+
         finalMarker.bindPopup(popupContent);
         finalMarker.on('mouseover', function (e) {
             this.openPopup();
@@ -657,14 +663,14 @@ function fetchInterestPlaces() {
         map.on('click', originalMapClickHandler);
 
         // Remove the temporary marker (if any)
-       map.removeLayer(tempMarker);
+        map.removeLayer(tempMarker);
 
         addingInterestPlace = false;
     });
 }
 
 
-function reinitCommunityMarkers(){
+function reinitCommunityMarkers() {
     Object.keys(interestMarkers).forEach(cat => {
         interestMarkers[cat].forEach(marker => {
             marker.setOpacity(0.5);
@@ -682,13 +688,13 @@ function highlightCategory(category) {
             marker.setIcon(interestIcon);
         });
     });
-    
+
     // Si "all" est sélectionné, remettre tous les marqueurs à l'opacité normale
     if (category === 'all') {
         reinitCommunityMarkers();
         return;
     }
-    
+
     // Sinon, mettre en évidence uniquement la catégorie sélectionnée
     if (interestMarkers[category]) {
         interestMarkers[category].forEach(marker => {
@@ -1091,13 +1097,9 @@ window.onload = function () {
             });
 
             btn.classList.add('active');
-            if (document.getElementById('start-point').getAttribute('data-coords') ||
-                document.getElementById('end-point').getAttribute('data-coords')) {
+            if (document.getElementById('start-point').value ||
+                document.getElementById('end-point').value) {
                 fetchItinaries(true);
-            }
-            else {
-                fetchItinaries();
-
             }
         });
     });
@@ -1161,20 +1163,20 @@ window.onload = function () {
                 departTime.classList.remove('hidden');
             }
 
-            // if (document.getElementById('start-point').getAttribute('data-coords') ||
-            //     document.getElementById('end-point').getAttribute('data-coords')) {
-            // } // TODO
-            fetchItinaries(true);
+            if (document.getElementById('start-point').value ||
+                document.getElementById('end-point').value) {
+                fetchItinaries(true);
+            }
         });
     }
 
     );
 
     journeyTime.addEventListener('change', (ev) => {
-        // if (document.getElementById('start-point').getAttribute('data-coords') ||
-        //     document.getElementById('end-point').getAttribute('data-coords')) {
-        //     } // TODO
-        fetchItinaries(true);
+        if (document.getElementById('start-point').value ||
+            document.getElementById('end-point').value) {
+            fetchItinaries(true);
+        }
     });
 
     // Gestion du bouton mobile
