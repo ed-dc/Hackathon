@@ -9,7 +9,178 @@ var shownMarkers = [];
 let itineraries = [];
 let startCoords = null;
 let endCoords = null;
-let interestPlaces = [];
+let interestPlaces = [
+    {
+        name: "Musée de Grenoble",
+        category: "museum",
+        lat: 45.1949348449707,
+        lng: 5.732178211212158
+    },
+    {
+        name: "Bastille de Grenoble",
+        category: "activity",
+        lat: 45.199925,
+        lng: 5.724812
+    },
+    {
+        name: "Le Petit Bain",
+        category: "restaurant",
+        lat: 45.192298,
+        lng: 5.720375
+    },
+    {
+        name: "Centre Commercial Grand'Place",
+        category: "shopping",
+        lat: 45.1585578918457,
+        lng: 5.726695537567139
+    },
+    {
+        name: "Parc Paul Mistral",
+        category: "other",
+        lat: 45.185289, 
+        lng: 5.736387 
+    },
+    {
+        name: "Le 5",
+        category: "restaurant",
+        lat: 45.188876,
+        lng: 5.724029
+    },
+    {
+        name: "Musée Dauphinois",
+        category: "museum",
+        lat: 45.19521020890247, 
+        lng: 5.726579754894914
+    },
+    {
+        name: "Galeries Lafayette",
+        category: "shopping",
+        lat: 45.19067481647549,
+        lng:  5.726839268389635
+    },
+    {
+        name: "Téléphérique de Grenoble",
+        category: "activity",
+        lat: 45.19314759176473, 
+        lng: 5.726047753049538
+    },
+    {
+        name: "La Belle Électrique",
+        category: "activity",
+        lat: 45.18746694182053, 
+        lng:5.704195397224524
+    },
+    {
+        name: "Muséum de Grenoble",
+        category: "museum",
+        lat: 45.19532111980316,
+        lng:  5.732162693534311
+    },
+    {
+        name: "Le Jardin de Ville",
+        category: "other",
+        lat: 45.19233909444988, 
+        lng: 5.726875126059759
+    },
+    {
+        name: "La ferme à Dédé",
+        category: "restaurant",
+        lat: 45.1930601443852, 
+        lng: 5.729873590068935
+    },
+    {
+        name: "Fnac Grenoble",
+        category: "shopping",
+        lat: 45.19057217795545,
+        lng:  5.726274739554589
+    },
+    {
+        name: "Parc Jardin des Plantes",
+        category: "other",
+        lat: 45.18749889466797, 
+        lng:5.735635683729657
+    },
+    {
+        name: "Café de la Table Ronde",
+        category: "restaurant",
+        lat: 45.19294916209595, 
+        lng: 5.728379126059802
+    },
+    {
+        name: "Palais de Justice",
+        category: "other",
+        lat: 45.19129822065948,
+        lng:  5.711579527904958
+    },
+    {
+        name: "Hôtel de Ville de Grenoble",
+        category: "other",
+        lat: 45.18681570439888,
+        lng:  5.736264224214195
+    },
+    {
+        name: "Cathédrale Notre-Dame",
+        category: "other",
+        lat: 45.1928433883839, 
+        lng: 5.7317903665444625
+    },
+    {
+        name: "Caserne de Bonne",
+        category: "shopping",
+        lat: 45.18405454249616,
+        lng:  5.723146295379088
+    },
+    {
+        name: "Musée Archéologique",
+        category: "museum",
+        lat: 45.19776661508094, 
+        lng:5.7315676260600235
+    },
+    {
+        name: "Marché Saint-Bruno",
+        category: "shopping",
+        lat: 45.18749726488956,
+        lng:  5.714158826059536
+    },
+    {
+        name: "Patinoire Polesud",
+        category: "activity",
+        lat: 45.15793841906218, 
+        lng: 5.734269289842071
+    },
+    {
+        name: "Cinéma Pathé Chavant",
+        category: "activity",
+        lat: 45.18570814551838, 
+        lng: 5.731412310719343
+    },
+    {
+        name: "Bibliothèque d'Étude et du Patrimoine",
+        category: "other",
+        lat: 45.185520640803766, 
+        lng: 5.731071887420085
+    },
+    {
+        name: "Parc de l'Île d'Amour",
+        category: "other",
+        lat: 45.200516488430424, 
+        lng: 5.767857081884928
+    },
+    {
+        name: "Parc Bachelard",
+        category: "other",
+        lat: 45.164523510034805, 
+        lng: 5.705949993532956
+    },
+    {
+        name: "MC2 - Maison de la Culture",
+        category: "activity",
+        lat: 45.17227201581915, 
+        lng: 5.733343668388805
+    },
+];
+
+
 let interestMarkers = {};
 
 const startIcon = L.divIcon({
@@ -149,6 +320,37 @@ function addInterestsPoints() {
             }
         }
     }).addTo(map);
+
+
+    interestPlaces.forEach(place => {
+        const lat = place.lat;
+        const lng = place.lng;
+        const name = place.name;
+        const category = place.category;
+        const coordStr = `${lat}, ${lng} `;
+
+        const finalMarker = L.marker([lat, lng], {
+            icon: interestIcon,
+            opacity: 0.5
+        }).addTo(map);
+
+        // Stocker le marqueur par catégorie
+        if (!interestMarkers[category]) {
+            interestMarkers[category] = [];
+        }
+        interestMarkers[category].push(finalMarker);
+
+        let popupContent = `<h3 style="color:rgb(116, 168, 82); font-size: 14px; margin: 0; padding: 5px;">${name}</h3>`;
+        popupContent += `<p style="margin: 0; padding: 5px;">${category}</p>`;
+
+        finalMarker.bindPopup(popupContent);
+        finalMarker.on('mouseover', function (e) {
+            this.openPopup();
+        });
+        finalMarker.on('mouseout', function (e) {
+            this.closePopup();
+        });
+    });
 }
 
 function fetchItinaries(isSearch = false) {
