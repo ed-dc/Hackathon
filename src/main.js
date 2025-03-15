@@ -10,6 +10,7 @@ let itineraries = [];
 let startCoords = null;
 let endCoords = null;
 let interestPlaces = [];
+let interestMarkers = {};
 
 const startIcon = L.divIcon({
     html: '<i class="fas fa-map-marker fa-2x" style="color:#3388ff;"></i>',
@@ -557,6 +558,8 @@ function fetchInterestPlaces() {
     add_place.addEventListener('click', function () {
         if (!addingInterestPlace) {
             hideItinerary();
+            
+            reinitCommunityMarkers();
 
             if (shownMarkers.length > 0) {
                 shownMarkers.forEach(marker => {
@@ -584,12 +587,13 @@ function fetchInterestPlaces() {
     document.getElementById('save-place-btn').addEventListener('click', function () {
         const placeName = document.getElementById('place-name').value;
         const placeCategory = document.getElementById('place-category').value;
+        
 
         if (placeName.trim() === '') {
             alert('Veuillez entrer un nom pour ce lieu.');
             return;
         }
-
+    
         const interestPlace = {
             name: placeName,
             category: placeCategory,
@@ -598,42 +602,46 @@ function fetchInterestPlaces() {
         };
         interestPlaces.push(interestPlace);
         console.log('Lieu ajouté:', interestPlace);
-
-
+    
         // Reset the form
         document.getElementById('place-name').value = '';
         formContainer.style.display = 'none';
-
+    
         // Reset the button
         add_place.textContent = 'Ajouter un lieu d\'intérêt';
-
+    
         // Restore normal map behavior
         map.off('click', addInterestPlaceHandler);
         map.on('click', originalMapClickHandler);
-
+    
         addingInterestPlace = false;
-
+    
         map.removeLayer(tempMarker);
-
-        const finalMarker = L.marker([temp_lat, temp_lng], {icon: interestIcon,
-            opacity: 0.5} ).addTo(map);
-
+    
+        // Créer le marqueur final
+        const finalMarker = L.marker([temp_lat, temp_lng], {
+            icon: interestIcon,
+            opacity: 0.5
+        }).addTo(map);
+    
+        // Stocker le marqueur par catégorie
+        if (!interestMarkers[placeCategory]) {
+            interestMarkers[placeCategory] = [];
+        }
+        interestMarkers[placeCategory].push(finalMarker);
+    
         let popupContent = `<h3 style="color:rgb(116, 168, 82); font-size: 14px; margin: 0; padding: 5px;">${placeName}</h3>`;
-   
         popupContent += `<p style="margin: 0; padding: 5px;">${placeCategory}</p>`;
-
+    
         finalMarker.bindPopup(popupContent);
-
-        // Add mouseover and mouseout events to the marker instead of the map
         finalMarker.on('mouseover', function (e) {
             this.openPopup();
         });
-
         finalMarker.on('mouseout', function (e) {
             this.closePopup();
         });
-        
     });
+
 
     // Cancel button click handler
     document.getElementById('cancel-place-btn').addEventListener('click', function () {
@@ -656,7 +664,56 @@ function fetchInterestPlaces() {
 }
 
 
+function reinitCommunityMarkers(){
+    Object.keys(interestMarkers).forEach(cat => {
+        interestMarkers[cat].forEach(marker => {
+            marker.setOpacity(0.5);
+            marker.setIcon(interestIcon);
+        });
+    });
+}
 
+
+function highlightCategory(category) {
+    // Réinitialiser tous les marqueurs à faible opacité
+    Object.keys(interestMarkers).forEach(cat => {
+        interestMarkers[cat].forEach(marker => {
+            marker.setOpacity(0.3);
+            marker.setIcon(interestIcon);
+        });
+    });
+    
+    // Si "all" est sélectionné, remettre tous les marqueurs à l'opacité normale
+    if (category === 'all') {
+        reinitCommunityMarkers();
+        return;
+    }
+    
+    // Sinon, mettre en évidence uniquement la catégorie sélectionnée
+    if (interestMarkers[category]) {
+        interestMarkers[category].forEach(marker => {
+            marker.setOpacity(1.0);
+            marker.setIcon(L.divIcon({
+                html: '<i class="fas fa-map-pin" style="color:red; font-size: 1rem;"></i>',
+                iconSize: [12, 12],
+                className: 'new-icon'
+            }))
+        });
+    }
+}
+
+
+function getCategoryIcon() {
+    const categories = ['restaurant', 'museum', 'shopping', 'activity', 'other', 'all'];
+
+    categories.forEach(category => {
+
+        const categoryButton = document.getElementById(`commu-${category}-btn`);
+        categoryButton.addEventListener('click', function () {
+            highlightCategory(category);
+        });
+    });
+}
 
 
 function setupMapClickListener() {
@@ -1025,6 +1082,7 @@ window.onload = function () {
 
     setupPlaceSearch();
     fetchInterestPlaces();
+    getCategoryIcon();
 
     document.querySelectorAll('button.transport-btn').forEach((btn) => {
         btn.addEventListener('click', (ev) => {
@@ -1079,6 +1137,7 @@ window.onload = function () {
 
     closeCommunityBtn.addEventListener('click', function () {
         communitySidebar.classList.remove('visible');
+        reinitCommunityMarkers();
         showSidebar();
     });
 
